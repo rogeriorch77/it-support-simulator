@@ -6,6 +6,14 @@
   <title>IT Support Simulator N1/N2 — Classement</title>
   <link rel="stylesheet" href="css/style.css">
   <style>
+    :root {
+      --bg:      #0d1117;
+      --surface: #161b22;
+      --surface2:#21262d;
+      --text:    #e6edf3;
+      --font:    -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
@@ -15,6 +23,7 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: 18px 40px; border-bottom: 1px solid var(--border);
       background: var(--surface); position: sticky; top: 0; z-index: 100;
+      backdrop-filter: blur(8px);
     }
     .land-logo { display: flex; align-items: center; gap: 12px; }
     .land-logo .logo-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--accent); color: #fff; font-weight: 800; font-size: .95rem; display: flex; align-items: center; justify-content: center; }
@@ -26,8 +35,9 @@
 
     /* ── Hero ── */
     .land-hero {
-      text-align: center; padding: 60px 20px 40px;
-      background: linear-gradient(180deg, rgba(99,102,241,.07) 0%, transparent 100%);
+      text-align: center; padding: 72px 20px 52px;
+      background: linear-gradient(160deg, rgba(59,130,246,.08) 0%, rgba(139,92,246,.06) 50%, transparent 100%);
+      border-bottom: 1px solid var(--border);
     }
     .hero-badge { display: inline-block; background: rgba(99,102,241,.15); color: var(--accent); border: 1px solid rgba(99,102,241,.3); border-radius: 20px; padding: 4px 14px; font-size: .8rem; font-weight: 600; margin-bottom: 16px; }
     .hero-title { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.2; margin-bottom: 12px; }
@@ -37,11 +47,11 @@
     .btn-github-hero { display: flex; align-items: center; gap: 10px; background: #24292e; color: #fff; border: none; border-radius: 10px; padding: 13px 28px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all .2s; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
     .btn-github-hero:hover { background: #3a3f45; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,.35); }
     .btn-explore { display: flex; align-items: center; gap: 8px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); border-radius: 10px; padding: 13px 24px; font-size: 1rem; cursor: pointer; transition: all .15s; }
-    .btn-explore:hover { color: var(--text); border-color: var(--text-muted); }
+    .btn-explore:hover { color: #e6edf3; border-color: var(--text-muted); }
 
     /* ── Stats ── */
     .land-stats { display: flex; gap: 1px; background: var(--border); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-    .stat-block { flex: 1; background: var(--surface); padding: 20px; text-align: center; }
+    .stat-block { flex: 1; background: var(--surface2); padding: 20px; text-align: center; }
     .stat-block-val { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
     .stat-block-lbl { font-size: .78rem; color: var(--text-muted); margin-top: 3px; letter-spacing: .5px; text-transform: uppercase; }
 
@@ -67,7 +77,7 @@
     .lb-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--border); }
     .lb-avatar-placeholder { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .9rem; flex-shrink: 0; }
     .lb-username { font-weight: 600; font-size: .95rem; }
-    .lb-username a { color: var(--text); text-decoration: none; }
+    .lb-username a { color: #e6edf3; text-decoration: none; }
     .lb-username a:hover { color: var(--accent); }
 
     .level-badge { display: inline-block; border-radius: 12px; padding: 3px 10px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
@@ -85,7 +95,7 @@
     .lb-empty { text-align: center; padding: 48px 20px; color: var(--text-muted); }
     .lb-loading { text-align: center; padding: 40px; color: var(--text-muted); font-size: .9rem; }
 
-    .lb-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+    .lb-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
     .lb-card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
     .lb-card-title { font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
     .lb-refresh { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; color: var(--text-muted); cursor: pointer; font-size: .8rem; transition: all .15s; }
@@ -144,7 +154,7 @@
 
   <!-- ── LEADERBOARD ── -->
   <main class="land-main" id="ranking">
-    <div class="section-title">&#127942; Classement mondial</div>
+    <div class="section-title">&#127942; Classement</div>
     <p class="section-sub">Visible sans connexion — connecte-toi pour apparaître ici.</p>
 
     <div class="lb-card">

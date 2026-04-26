@@ -1,33 +1,34 @@
 # IT Support Simulator N1/N2
 
-> Plateforme de simulation support IT N1/N2 — entraînement tickets, terminal, quiz technique et préparation aux entretiens. Idéal pour décrocher son premier poste.
+> A hands-on simulation platform for IT support technicians (N1/N2) — practice tickets, terminal, timed quiz and interview prep. Built to help land your first IT job.
 
 **Live →** [rogeriorch77.github.io/it-support-simulator](https://rogeriorch77.github.io/it-support-simulator)  
-**Stack →** Vanilla HTML/CSS/JS · Supabase Auth · GitHub OAuth · Zero dependencies
+**Stack →** Vanilla HTML/CSS/JS · Supabase Auth · GitHub OAuth · Zero dependencies  
+**Language →** Interface entirely in French 🇫🇷 — designed for French-speaking IT learners
 
 ---
 
 ## Screenshots
 
-### Tableau de bord
+### Dashboard
 ![Dashboard](img/dashboard.webp)
 
-### Simulation d'appels
+### Call Simulator
 ![Simulation](img/simulation.webp)
 
-### Gestion de tickets
+### Ticket Management
 ![Tickets](img/tickets.webp)
 
-### Terminal interactif
+### Interactive Terminal
 ![Terminal](img/terminal.webp)
 
-### Base de connaissances
+### Knowledge Base
 ![Knowledge Base](img/knowledge.webp)
 
-### Quiz technique chronométré
+### Timed Technical Quiz
 ![Quiz](img/quiz.webp)
 
-### Préparation aux entretiens
+### Interview Preparation
 ![Entretiens](img/interview.webp)
 
 ---
@@ -36,90 +37,90 @@
 
 | Module | Description |
 |--------|-------------|
-| **Classement public** | Leaderboard en temps réel visible sans connexion — compétition XP entre joueurs |
-| **Simulation d'appels** | 13 scénarios N1/N2 réalistes avec contexte appelant, étapes diagnostiques MCQ et feedback pédagogique |
-| **Terminal CMD** | 25+ commandes Windows sur 8 machines pré-configurées avec pannes spécifiques |
-| **Tickets GLPI** | 80 tickets support réalistes — open → en cours → résolu, avec résolution via terminal |
-| **Base de connaissances** | Référence rapide par domaine (Windows, AD, M365, Azure, Réseau, Serveur) |
-| **Quiz technique** | 30 questions N1/N2 chronométrées, choix simple et multiple, bonus vitesse, XP synchronisé |
-| **Entretiens** | 45 questions/réponses d'entretien N1/N2 avec méthode STAR et filtres par catégorie |
+| **Public Leaderboard** | Real-time XP ranking visible without login — global competition |
+| **Call Simulator** | 13 N1/N2 realistic scenarios with caller context, MCQ diagnostic steps and pedagogical feedback |
+| **CMD Terminal** | 25+ Windows commands across 8 pre-configured machines with specific failure scenarios |
+| **GLPI Tickets** | 80 realistic support tickets — open → in progress → resolved, with terminal resolution |
+| **Knowledge Base** | Quick reference by domain (Windows, AD, M365, Azure, Network, Server) |
+| **Technical Quiz** | 30 timed N1/N2 questions, single and multiple choice, speed bonus, XP synced to leaderboard |
+| **Interview Prep** | 45 N1/N2 interview Q&As with STAR method and category filters |
 
 ---
 
-## Système XP & Classement
+## XP & Level System
 
-| Niveau | Nom | XP requis |
-|--------|-----|-----------|
+| Level | Name | XP Required |
+|-------|------|-------------|
 | 1 | Débutant | 0 XP |
 | 2 | Technicien | 500 XP |
-| 3 | Support N1 | 1 500 XP |
-| 4 | Support N2 | 3 500 XP |
-| 5 | Spécialiste | 7 000 XP |
-| 6 | Expert | 14 000 XP |
-| 7 | Architecte | 25 000 XP |
-| 8 | Elite | 50 000 XP |
+| 3 | Support N1 | 1,500 XP |
+| 4 | Support N2 | 3,500 XP |
+| 5 | Spécialiste | 7,000 XP |
+| 6 | Expert | 14,000 XP |
+| 7 | Architecte | 25,000 XP |
+| 8 | Elite | 50,000 XP |
 
-XP gagné en quiz, synchronisé dans Supabase. Classement mondial public, pas de plafond.
+XP earned in quizzes, synced to Supabase. Public leaderboard, no cap.
 
 ---
 
-## Connexion
+## Authentication
 
-Accès via **GitHub OAuth** — aucun mot de passe, aucune donnée sensible stockée.  
-Le classement est visible sans connexion. La connexion débloque la progression personnelle.
+Login via **GitHub OAuth** — no password, no sensitive data stored.  
+The leaderboard is publicly visible. Login unlocks personal progression tracking.
 
 ---
 
 ## Tech Stack
 
-| Item | Détail |
+| Item | Detail |
 |------|--------|
 | Frontend | HTML5 + CSS3 + Vanilla JavaScript ES6+ |
 | Auth | Supabase Auth — GitHub OAuth |
-| Base de données | Supabase (PostgreSQL) — profils et XP uniquement |
-| Hébergement | GitHub Pages |
-| Dépendances | Supabase JS SDK (CDN) — zéro npm, zéro framework |
-| Compatibilité | Tout navigateur moderne |
+| Database | Supabase (PostgreSQL) — profiles and XP only |
+| Hosting | GitHub Pages |
+| Dependencies | Supabase JS SDK via CDN — zero npm, zero framework |
+| Compatibility | All modern browsers |
 
 ---
 
-## Structure
+## Project Structure
 
 ```
 /
-├── index.html            — Landing page + classement public
-├── dashboard.html        — XP / niveaux / statistiques
-├── simulation.html       — Simulateur d'appels N1/N2
-├── terminal.html         — Terminal CMD interactif
-├── tickets.html          — Gestion de tickets GLPI
-├── knowledge.html        — Base de connaissances
-├── entretiens.html       — Préparation aux entretiens
-├── quiz.html             — Quiz technique chronométré
-├── schema.sql            — Schéma base de données Supabase
-├── img/                  — Screenshots et assets
-├── css/style.css         — Design system thème sombre
+├── index.html            — Landing page + public leaderboard
+├── dashboard.html        — XP / levels / statistics
+├── simulation.html       — N1/N2 call simulator
+├── terminal.html         — Interactive CMD terminal
+├── tickets.html          — GLPI ticket management
+├── knowledge.html        — Knowledge base
+├── entretiens.html       — Interview preparation
+├── quiz.html             — Timed technical quiz
+├── schema.sql            — Supabase database schema
+├── img/                  — Screenshots and assets
+├── css/style.css         — Dark theme design system
 └── js/
-    ├── app.js            — Core: traductions, navigation
+    ├── app.js            — Core: translations, navigation
     ├── auth.js           — Supabase Auth + guard + XP sync
-    ├── config.example.js — Template configuration (copier → config.js)
-    ├── terminal.js       — Moteur CMD
-    ├── scenarios.js      — Base de données 13 scénarios
-    ├── tickets.js        — Base de données 80 tickets
-    └── progress.js       — XP, niveaux, badges
+    ├── config.example.js — Config template (copy → config.js)
+    ├── terminal.js       — CMD engine
+    ├── scenarios.js      — 13-scenario database
+    ├── tickets.js        — 80-ticket database
+    └── progress.js       — XP, levels, badges
 ```
 
 ---
 
-## Environnement fictif
+## Fictional Environment
 
-| Élément | Valeur |
-|---------|--------|
-| Domaine AD | `CORP.LOCAL` |
-| Sous-réseau | `192.168.1.0/24` |
-| Contrôleur de domaine | `DC01.CORP.LOCAL` |
-| Format machine | `PC-[DEPT]-[NUM]` |
-| Format compte | `prenom.nom` |
+| Element | Value |
+|---------|-------|
+| AD Domain | `CORP.LOCAL` |
+| Subnet | `192.168.1.0/24` |
+| Domain Controller | `DC01.CORP.LOCAL` |
+| Machine format | `PC-[DEPT]-[NUM]` |
+| Account format | `firstname.lastname` |
 
 ---
 
-Développé par [@rogeriorch77](https://github.com/rogeriorch77)
+Built by [@rogeriorch77](https://github.com/rogeriorch77)
