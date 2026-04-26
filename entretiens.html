@@ -1129,10 +1129,7 @@ gpresult /r</code>
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script>
-    // ---- USER ----
-    const user = localStorage.getItem('user') || 'User';
-    document.querySelector('.user-avatar').textContent = user.charAt(0).toUpperCase();
-    document.querySelector('.user-name').textContent = user;
+
 
     // ---- ACCORDION ----
     document.querySelectorAll('.interview-q').forEach(q => {
