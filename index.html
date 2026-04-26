@@ -130,12 +130,16 @@
     /* ── Stats ── */
     .stats {
       display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 1px; background: var(--border);
+      gap: 12px;
+      padding: 0 32px 14px;
+      background: var(--bg);
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
     .stat {
-      background: var(--surface2);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
       padding: 14px 20px; text-align: center;
       display: flex; align-items: center; justify-content: center; gap: 12px;
     }
