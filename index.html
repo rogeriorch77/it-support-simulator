@@ -82,7 +82,12 @@
       font-size: clamp(2rem, 4.5vw, 3rem);
       font-weight: 800; line-height: 1.15; margin-bottom: 14px;
     }
-    .hero-title .accent { color: var(--accent); }
+    .hero-title .accent {
+      background: linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
     .hero-sub {
       color: #c9d1d9; font-size: .97rem;
       max-width: 560px; margin: 0 auto 30px; line-height: 1.65;
