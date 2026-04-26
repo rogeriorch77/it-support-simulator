@@ -6,6 +6,7 @@ desktop.ini
 # Editor
 .vscode/
 .idea/
+.claude/
 *.suo
 *.user
 

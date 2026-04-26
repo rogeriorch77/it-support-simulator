@@ -118,6 +118,11 @@ function renderAuthTopbar(user) {
 
 // ── Auto-guard: protege todas as páginas excepto index.html ──────────────
 (function() {
+  const isLocal = window.location.protocol === 'file:' ||
+                  window.location.hostname === 'localhost' ||
+                  window.location.hostname === '127.0.0.1';
+  if (isLocal) return; // sem auth em desenvolvimento local
+
   const page = window.location.pathname.split('/').pop() || 'index.html';
   if (page !== 'index.html' && page !== '') {
     document.addEventListener('DOMContentLoaded', () => Auth.guard());
