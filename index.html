@@ -18,251 +18,227 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font); }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; }
 
-    /* ── Layout ── */
-    .land-wrap {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
+    .land-wrap { display: flex; flex-direction: column; height: 100vh; }
 
     /* ── Header ── */
     .land-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 32px; height: 52px;
       border-bottom: 1px solid var(--border);
       background: var(--surface);
       flex-shrink: 0;
     }
-    .land-logo { display: flex; align-items: center; gap: 10px; }
-    .land-logo .logo-icon { width: 34px; height: 34px; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 800; font-size: .85rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .land-logo-text { font-weight: 700; font-size: .95rem; }
-    .land-logo-sub { font-size: .72rem; color: var(--text-muted); }
-    .header-auth { display: flex; gap: 8px; align-items: center; }
-    .btn-sm { display: flex; align-items: center; gap: 7px; border: none; border-radius: 7px; padding: 8px 14px; font-size: .82rem; font-weight: 600; cursor: pointer; transition: background .15s; }
-    .btn-sm-github { background: #24292e; color: #fff; }
-    .btn-sm-github:hover { background: #3a3f45; }
-    .btn-sm-google { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-    .btn-sm-google:hover { background: #2d333b; }
+    .land-logo { display: flex; align-items: center; gap: 9px; }
+    .logo-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--accent); color: #fff; font-weight: 800; font-size: .75rem; display: flex; align-items: center; justify-content: center; }
+    .logo-text { font-weight: 700; font-size: .88rem; }
+    .logo-sub { font-size: .65rem; color: var(--text-muted); }
+    .header-btns { display: flex; gap: 8px; }
+    .btn-hdr { display: flex; align-items: center; gap: 6px; border: none; border-radius: 6px; padding: 6px 12px; font-size: .78rem; font-weight: 600; cursor: pointer; transition: background .15s; }
+    .btn-hdr-gh  { background: #24292e; color: #fff; }
+    .btn-hdr-gh:hover  { background: #3a3f45; }
+    .btn-hdr-gg  { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-hdr-gg:hover  { background: #2d333b; }
 
-    /* ── Two-column body ── */
-    .land-body {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
+    /* ── Scroll container ── */
+    .land-scroll { flex: 1; overflow-y: auto; }
+    .land-scroll::-webkit-scrollbar { width: 4px; }
+    .land-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-    /* ── Left: Hero ── */
-    .land-left {
-      flex: 0 0 44%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 40px 48px;
-      border-right: 1px solid var(--border);
+    /* ── Hero ── */
+    .hero {
+      text-align: center;
+      padding: 36px 20px 28px;
+      background: linear-gradient(160deg, rgba(99,102,241,.07) 0%, rgba(139,92,246,.05) 60%, transparent 100%);
+      border-bottom: 1px solid var(--border);
     }
-    .hero-badge {
-      display: inline-block;
-      background: rgba(99,102,241,.15);
-      color: var(--accent);
-      border: 1px solid rgba(99,102,241,.3);
-      border-radius: 20px;
-      padding: 4px 12px;
-      font-size: .75rem;
-      font-weight: 600;
-      margin-bottom: 20px;
-      width: fit-content;
-    }
-    .hero-title {
-      font-size: clamp(1.6rem, 2.8vw, 2.2rem);
-      font-weight: 800;
-      line-height: 1.2;
-      margin-bottom: 14px;
-    }
+    .hero-badge { display: inline-block; background: rgba(99,102,241,.15); color: var(--accent); border: 1px solid rgba(99,102,241,.3); border-radius: 20px; padding: 3px 12px; font-size: .72rem; font-weight: 600; margin-bottom: 14px; }
+    .hero-title { font-size: clamp(1.5rem, 3.5vw, 2.4rem); font-weight: 800; line-height: 1.2; margin-bottom: 10px; }
     .hero-title span { color: var(--accent); }
-    .hero-sub {
-      color: #c9d1d9;
-      font-size: .97rem;
-      line-height: 1.65;
-      margin-bottom: 28px;
-      max-width: 380px;
+    .hero-sub { color: #c9d1d9; font-size: .92rem; max-width: 500px; margin: 0 auto 22px; line-height: 1.6; }
+    .hero-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .btn-hero { display: flex; align-items: center; gap: 9px; border: none; border-radius: 9px; padding: 11px 26px; font-size: .92rem; font-weight: 700; cursor: pointer; transition: all .2s; }
+    .btn-hero-gh { background: #24292e; color: #fff; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
+    .btn-hero-gh:hover { background: #3a3f45; transform: translateY(-1px); }
+    .btn-hero-gg { background: #fff; color: #3c4043; box-shadow: 0 2px 12px rgba(0,0,0,.2); }
+    .btn-hero-gg:hover { background: #f8f9fa; transform: translateY(-1px); }
+
+    /* ── Feature cards ── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border-bottom: 1px solid var(--border);
     }
-    .hero-buttons { display: flex; flex-direction: column; gap: 10px; max-width: 300px; }
-    .btn-hero { display: flex; align-items: center; justify-content: center; gap: 10px; border: none; border-radius: 9px; padding: 12px 24px; font-size: .95rem; font-weight: 700; cursor: pointer; transition: all .2s; width: 100%; }
-    .btn-hero-github { background: #24292e; color: #fff; box-shadow: 0 2px 12px rgba(0,0,0,.3); }
-    .btn-hero-github:hover { background: #3a3f45; transform: translateY(-1px); }
-    .btn-hero-google { background: #fff; color: #3c4043; box-shadow: 0 2px 12px rgba(0,0,0,.2); }
-    .btn-hero-google:hover { background: #f8f9fa; transform: translateY(-1px); }
+    .feat-card { background: var(--surface); padding: 16px 18px; }
+    .feat-icon { font-size: 1.2rem; margin-bottom: 6px; }
+    .feat-name { font-weight: 700; font-size: .82rem; margin-bottom: 4px; }
+    .feat-desc { font-size: .74rem; color: var(--text-muted); line-height: 1.45; }
 
     /* ── Stats ── */
-    .hero-stats {
-      display: flex;
-      gap: 24px;
-      margin-top: 32px;
-      padding-top: 24px;
-      border-top: 1px solid var(--border);
-    }
-    .stat-item { text-align: center; }
-    .stat-val { font-size: 1.3rem; font-weight: 800; color: var(--accent); }
-    .stat-lbl { font-size: .7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
-
-    /* ── Right: Leaderboard ── */
-    .land-right {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .lb-header {
-      padding: 20px 28px 14px;
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
       border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
     }
-    .lb-title { font-weight: 700; font-size: .95rem; display: flex; align-items: center; gap: 8px; }
-    .lb-sub { font-size: .78rem; color: var(--text-muted); margin-top: 2px; }
-    .lb-refresh { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; color: var(--text-muted); cursor: pointer; font-size: .78rem; transition: all .15s; }
+    .stat-block { background: var(--surface2); padding: 14px; text-align: center; }
+    .stat-val { font-size: 1.3rem; font-weight: 800; color: var(--accent); }
+    .stat-lbl { font-size: .65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .5px; margin-top: 2px; }
+
+    /* ── Leaderboard ── */
+    .lb-section { max-width: 860px; margin: 0 auto; padding: 20px 20px 0; }
+    .lb-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .lb-title { font-weight: 700; font-size: .95rem; }
+    .lb-refresh { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; color: var(--text-muted); cursor: pointer; font-size: .75rem; transition: all .15s; }
     .lb-refresh:hover { border-color: var(--accent); color: var(--accent); }
-    .lb-scroll { flex: 1; overflow-y: auto; }
-    .lb-scroll::-webkit-scrollbar { width: 4px; }
-    .lb-scroll::-webkit-scrollbar-track { background: transparent; }
-    .lb-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .lb-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
 
     .lb-table { width: 100%; border-collapse: collapse; }
-    .lb-table th { font-size: .68rem; text-transform: uppercase; letter-spacing: .7px; color: var(--text-muted); padding: 8px 16px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 600; position: sticky; top: 0; background: var(--bg); }
-    .lb-row { transition: background .12s; }
+    .lb-table th { font-size: .67rem; text-transform: uppercase; letter-spacing: .7px; color: var(--text-muted); padding: 8px 14px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 600; }
     .lb-row:hover { background: rgba(99,102,241,.05); }
-    .lb-row td { padding: 10px 16px; border-bottom: 1px solid rgba(48,54,61,.5); vertical-align: middle; }
+    .lb-row td { padding: 9px 14px; border-bottom: 1px solid rgba(48,54,61,.5); vertical-align: middle; }
     .lb-row:last-child td { border-bottom: none; }
 
-    .rank-cell { width: 42px; text-align: center; font-weight: 800; }
-    .rank-1 { color: #f59e0b; font-size: 1.3rem; }
-    .rank-2 { color: #9ca3af; font-size: 1.2rem; }
-    .rank-3 { color: #cd7f32; font-size: 1.15rem; }
-    .rank-n { color: var(--text-muted); font-size: .88rem; }
+    .rank-cell { width: 40px; text-align: center; font-weight: 800; }
+    .rank-1 { color: #f59e0b; font-size: 1.2rem; }
+    .rank-2 { color: #9ca3af; font-size: 1.1rem; }
+    .rank-3 { color: #cd7f32; font-size: 1.05rem; }
+    .rank-n { color: var(--text-muted); font-size: .85rem; }
 
-    .user-cell { display: flex; align-items: center; gap: 9px; }
-    .lb-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-    .lb-avatar-placeholder { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .8rem; flex-shrink: 0; }
-    .lb-username { font-weight: 600; font-size: .88rem; }
-    .lb-username a { color: var(--text); text-decoration: none; }
-    .lb-username a:hover { color: var(--accent); }
+    .user-cell { display: flex; align-items: center; gap: 8px; }
+    .lb-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+    .lb-avatar-ph { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .75rem; flex-shrink: 0; }
+    .lb-uname { font-weight: 600; font-size: .85rem; }
+    .lb-uname a { color: var(--text); text-decoration: none; }
+    .lb-uname a:hover { color: var(--accent); }
 
-    .level-badge { display: inline-block; border-radius: 10px; padding: 2px 8px; font-size: .68rem; font-weight: 700; white-space: nowrap; }
-
-    .xp-val { font-weight: 700; font-size: .88rem; color: var(--accent); white-space: nowrap; }
-    .xp-bar-wrap { height: 3px; background: var(--border); border-radius: 2px; margin-top: 3px; width: 64px; }
+    .level-badge { display: inline-block; border-radius: 10px; padding: 2px 8px; font-size: .66rem; font-weight: 700; white-space: nowrap; }
+    .xp-val { font-weight: 700; font-size: .85rem; color: var(--accent); white-space: nowrap; }
+    .xp-bar-wrap { height: 3px; background: var(--border); border-radius: 2px; margin-top: 3px; width: 56px; }
     .xp-bar-fill { height: 100%; border-radius: 2px; }
-
-    .quiz-count { color: var(--text-muted); font-size: .82rem; }
-    .lb-empty { text-align: center; padding: 48px 20px; color: var(--text-muted); }
-    .lb-loading { text-align: center; padding: 40px; color: var(--text-muted); font-size: .88rem; }
+    .quiz-count { color: var(--text-muted); font-size: .8rem; }
+    .lb-empty { text-align: center; padding: 36px 20px; color: var(--text-muted); }
+    .lb-loading { text-align: center; padding: 32px; color: var(--text-muted); font-size: .85rem; }
 
     /* ── Footer ── */
-    .land-footer {
-      text-align: center;
-      padding: 10px;
-      color: var(--text-muted);
-      font-size: .72rem;
-      border-top: 1px solid var(--border);
-      flex-shrink: 0;
-    }
+    .land-footer { text-align: center; padding: 10px; color: var(--text-muted); font-size: .7rem; border-top: 1px solid var(--border); flex-shrink: 0; }
     .land-footer a { color: var(--accent); text-decoration: none; }
 
-    /* ── Mobile ── */
-    @media (max-width: 720px) {
+    @media (max-width: 700px) {
       html, body { overflow: auto; }
-      .land-body { flex-direction: column; }
-      .land-left { flex: none; padding: 32px 20px; border-right: none; border-bottom: 1px solid var(--border); }
-      .land-right { min-height: 400px; }
-      .hero-buttons { max-width: 100%; }
+      .features, .stats-bar { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
 <body>
 <div class="land-wrap">
 
-  <!-- ── HEADER ── -->
+  <!-- HEADER -->
   <header class="land-header">
     <div class="land-logo">
       <div class="logo-icon">IT</div>
       <div>
-        <div class="land-logo-text">IT Support Simulator</div>
-        <div class="land-logo-sub">N1 / N2 — par rogeriorch77</div>
+        <div class="logo-text">IT Support Simulator</div>
+        <div class="logo-sub">N1 / N2 — par rogeriorch77</div>
       </div>
     </div>
-    <div class="header-auth">
-      <button class="btn-sm btn-sm-google" onclick="Auth.signInWithGoogle()">
-        <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        Google
+    <div class="header-btns">
+      <button class="btn-hdr btn-hdr-gg" onclick="Auth.signInWithGoogle()">
+        <svg width="13" height="13" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Entrer avec Google
       </button>
-      <button class="btn-sm btn-sm-github" onclick="Auth.signInWithGitHub()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-        GitHub
+      <button class="btn-hdr btn-hdr-gh" onclick="Auth.signInWithGitHub()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        Entrer avec GitHub
       </button>
     </div>
   </header>
 
-  <!-- ── BODY ── -->
-  <div class="land-body">
+  <div class="land-scroll">
 
-    <!-- LEFT: Hero -->
-    <div class="land-left">
+    <!-- HERO -->
+    <section class="hero">
       <div class="hero-badge">&#9889; Plateforme IT N1/N2 · 100% gratuit</div>
-      <h1 class="hero-title">Entraîne-toi.<br><span>Progresse. Domine<br>le classement.</span></h1>
+      <h1 class="hero-title">Entraîne-toi.<br><span>Progresse. Domine le classement.</span></h1>
       <p class="hero-sub">Simulation de tickets, terminal interactif, quiz chronométré et préparation aux entretiens. Idéal pour décrocher ton premier poste en support IT.</p>
-      <div class="hero-buttons">
-        <button class="btn-hero btn-hero-github" onclick="Auth.signInWithGitHub()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-          Commencer avec GitHub
+      <div class="hero-btns">
+        <button class="btn-hero btn-hero-gg" onclick="Auth.signInWithGoogle()">
+          <svg width="17" height="17" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Entrer avec Google
         </button>
-        <button class="btn-hero btn-hero-google" onclick="Auth.signInWithGoogle()">
-          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-          Commencer avec Google
+        <button class="btn-hero btn-hero-gh" onclick="Auth.signInWithGitHub()">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          Entrer avec GitHub
         </button>
       </div>
-      <div class="hero-stats">
-        <div class="stat-item">
-          <div class="stat-val" id="statPlayers">—</div>
-          <div class="stat-lbl">Joueurs</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-val" id="statXP">—</div>
-          <div class="stat-lbl">XP total</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-val" id="statQuizzes">—</div>
-          <div class="stat-lbl">Quiz joués</div>
-        </div>
+    </section>
+
+    <!-- FEATURE CARDS -->
+    <div class="features">
+      <div class="feat-card">
+        <div class="feat-icon">📋</div>
+        <div class="feat-name">Simulation de tickets</div>
+        <div class="feat-desc">Résous 80 tickets N1/N2 réalistes dans un environnement GLPI simulé.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">💻</div>
+        <div class="feat-name">Terminal interactif</div>
+        <div class="feat-desc">25+ commandes Windows sur 8 machines préconfigurées avec scénarios de pannes.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⏱️</div>
+        <div class="feat-name">Quiz chronométré</div>
+        <div class="feat-desc">30 questions N1/N2 avec bonus de rapidité, XP et classement en temps réel.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🏆</div>
+        <div class="feat-name">Classement compétitif</div>
+        <div class="feat-desc">Gagne des XP, monte en niveau et figure dans le top des techniciens.</div>
       </div>
     </div>
 
-    <!-- RIGHT: Leaderboard -->
-    <div class="land-right">
-      <div class="lb-header">
-        <div>
-          <div class="lb-title">&#127942; Classement — Top 20</div>
-          <div class="lb-sub">Visible sans connexion · connecte-toi pour apparaître ici</div>
-        </div>
+    <!-- STATS -->
+    <div class="stats-bar">
+      <div class="stat-block">
+        <div class="stat-val" id="statPlayers">—</div>
+        <div class="stat-lbl">Joueurs totaux</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-val" id="statXP">—</div>
+        <div class="stat-lbl">XP total</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-val" id="statQuizzes">—</div>
+        <div class="stat-lbl">Quiz totaux</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-val">80</div>
+        <div class="stat-lbl">Tickets disponibles</div>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="lb-section">
+      <div class="lb-head">
+        <div class="lb-title">&#127942; Top 20 — XP total</div>
         <button class="lb-refresh" onclick="loadRanking()">&#8635; Actualiser</button>
       </div>
-      <div class="lb-scroll">
+      <div class="lb-card">
         <div id="lbBody">
           <div class="lb-loading">Chargement du classement…</div>
         </div>
       </div>
     </div>
 
-  </div>
+  </div><!-- /land-scroll -->
 
-  <!-- ── FOOTER ── -->
+  <!-- FOOTER -->
   <footer class="land-footer">
-    Développé par <a href="https://github.com/rogeriorch77" target="_blank">@rogeriorch77</a> · Plateforme de simulation support IT N1/N2 · Open source
+    Développé par <a href="https://github.com/rogeriorch77" target="_blank">@rogeriorch77</a> · IT Support Simulator v1.0 · 2025
   </footer>
 
 </div>
@@ -310,8 +286,8 @@
                 <div class="user-cell">
                   ${p.github_avatar
                     ? `<img class="lb-avatar" src="${p.github_avatar}" alt="${p.github_username}">`
-                    : `<div class="lb-avatar-placeholder">${(p.github_username||'?')[0].toUpperCase()}</div>`}
-                  <div class="lb-username">
+                    : `<div class="lb-avatar-ph">${(p.github_username||'?')[0].toUpperCase()}</div>`}
+                  <div class="lb-uname">
                     <a href="https://github.com/${p.github_username}" target="_blank">@${p.github_username}</a>
                   </div>
                 </div>
