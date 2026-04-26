@@ -36,6 +36,14 @@ const Auth = {
     });
   },
 
+  async signInWithGoogle() {
+    const base = window.location.href.replace(/[^/]*$/, '');
+    await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: base + 'dashboard.html' }
+    });
+  },
+
   async signOut() {
     await sb.auth.signOut();
     window.location.href = 'index.html';
