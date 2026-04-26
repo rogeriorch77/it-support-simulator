@@ -1,0 +1,474 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Support Simulator — Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .ticket-summary-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+    .tsum-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+    .tsum-icon { font-size: 22px; }
+    .tsum-val  { font-size: 22px; font-weight: 700; line-height: 1.1; }
+    .tsum-label{ font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .tsum-urgent { border-color: rgba(248,81,73,0.4); background: rgba(248,81,73,0.05); }
+    .tsum-warn   { border-color: rgba(210,153,34,0.4);  background: rgba(210,153,34,0.05); }
+    @media (max-width: 640px) { .ticket-summary-row { grid-template-columns: repeat(2,1fr); } }
+
+    /* Search suggestions dropdown */
+    .search-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      z-index: 200;
+      overflow: hidden;
+    }
+    .search-suggestion {
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+    .search-suggestion:last-child { border-bottom: none; }
+    .search-suggestion:hover, .search-suggestion.active { background: rgba(59,130,246,0.1); }
+    .ss-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ss-meta  { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .ss-no-results { padding: 10px 14px; font-size: 12px; color: var(--text-muted); text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="sidebar-overlay"></div>
+
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">IT</div>
+          <div>
+            <span class="logo-text">IT Support</span>
+            <span class="logo-sub">Simulator v1.0</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="active">
+          <span class="nav-icon">&#9632;</span>
+          <span data-i18n="dashboard">Tableau de bord</span>
+        </a>
+        <a href="tickets.html">
+          <span class="nav-icon">&#9993;</span>
+          <span data-i18n="tickets">Tickets</span>
+        </a>
+        <a href="simulation.html">
+          <span class="nav-icon">&#9742;</span>
+          <span data-i18n="simulation">Simulation</span>
+        </a>
+        <a href="terminal.html">
+          <span class="nav-icon">&#9654;</span>
+          <span data-i18n="nav_terminal">Terminal</span>
+        </a>
+        <a href="knowledge.html">
+          <span class="nav-icon">&#9733;</span>
+          <span data-i18n="knowledge">Base de connaissances</span>
+        </a>
+        <a href="entretiens.html">
+          <span class="nav-icon">&#9998;</span>
+          <span data-i18n="interviews">Entretiens</span>
+        </a>
+        <a href="quiz.html">
+          <span class="nav-icon">&#9889;</span>
+          <span>Quiz</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger">&#9776;</button>
+          <div class="search-box">
+            <span class="search-icon">&#128269;</span>
+            <input type="text" id="dashSearch" data-i18n="search" placeholder="Rechercher...">
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="user-info">
+            <div class="user-avatar">U</div>
+            <span class="user-name">User</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="page-header">
+          <h1 data-i18n="dashboard_title">Tableau de bord</h1>
+          <p data-i18n="dashboard_subtitle">Vue d'ensemble de votre progression</p>
+        </div>
+
+        <!-- XP / LEVEL CARD -->
+        <div class="xp-card">
+          <div class="xp-level-icon" id="xpLevelIcon">1</div>
+          <div class="xp-info">
+            <div class="xp-level-header">
+              <div class="xp-level-name" id="xpLevelName">Rookie</div>
+              <div class="xp-stars" id="xpStars">&#9733;</div>
+            </div>
+            <div class="xp-sub" id="xpNextLabel">Prochain niveau : Technicien N1 — 150 XP</div>
+            <div class="xp-bar-wrapper">
+              <div class="xp-bar-fill" id="xpBarFill" style="width: 0%;"></div>
+            </div>
+            <div class="xp-bar-label" id="xpBarLabel">0 / 150 XP</div>
+          </div>
+          <div class="xp-total" id="xpTotal">0 <span data-i18n="xp_label">XP</span></div>
+        </div>
+
+        <!-- STATS ROW -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">&#9742;</div>
+            <div class="stat-info">
+              <h3 id="statCalls">0</h3>
+              <span data-i18n="calls_completed">Appels effectués</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">&#10003;</div>
+            <div class="stat-info">
+              <h3 id="statUnique">0</h3>
+              <span data-i18n="unique_scenarios">Scénarios uniques</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon yellow">&#9733;</div>
+            <div class="stat-info">
+              <h3 id="statScore">—</h3>
+              <span data-i18n="avg_score_label">Score moyen</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon red">&#127942;</div>
+            <div class="stat-info">
+              <h3 id="statBadges">0</h3>
+              <span data-i18n="your_badges">Badges</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TICKET SUMMARY ROW -->
+        <div class="ticket-summary-row" id="ticketSummaryRow"></div>
+
+        <!-- CHARTS + ACTIVITY -->
+        <div class="dashboard-grid">
+
+          <!-- Tickets by category chart -->
+          <div class="card chart-container">
+            <h2 style="font-size: 16px; margin-bottom: 20px;">Tickets par catégorie</h2>
+            <div class="bar-chart" id="barChart"></div>
+
+            <!-- SLA -->
+            <div style="margin-top: 28px;">
+              <h3 style="font-size: 14px; margin-bottom: 14px;">SLA Performance</h3>
+              <div id="slaContainer"></div>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="card">
+            <h2 style="font-size: 16px; margin-bottom: 16px;" data-i18n="recent_activity">Activité récente</h2>
+            <ul class="activity-feed" id="activityFeed"></ul>
+          </div>
+        </div>
+
+        <!-- QUICK ACTIONS -->
+        <div class="card">
+          <h2 style="font-size: 16px; margin-bottom: 16px;" data-i18n="quick_actions">Actions rapides</h2>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a href="simulation.html" class="btn btn-primary" data-i18n="start_simulation">Démarrer une simulation</a>
+            <a href="tickets.html" class="btn btn-outline" data-i18n="tickets">Tickets</a>
+            <a href="knowledge.html" class="btn btn-outline" data-i18n="knowledge">Base de connaissances</a>
+          </div>
+        </div>
+
+        <!-- BADGES -->
+        <div class="card badges-section">
+          <h2 style="font-size: 16px; margin-bottom: 16px;" data-i18n="your_badges">Vos badges</h2>
+          <div class="badge-grid" id="badgeGrid"></div>
+        </div>
+
+      </div>
+
+      <footer class="app-footer">
+        <span data-i18n="footer">IT Support Simulator — Plateforme d'apprentissage</span>
+      </footer>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/tickets.js"></script>
+  <script src="js/progress.js"></script>
+  <script>
+    // ---- USER ----
+    const user = localStorage.getItem('user') || 'User';
+    document.querySelector('.user-avatar').textContent = user.charAt(0).toUpperCase();
+    document.querySelector('.user-name').textContent = user;
+
+    // ---- PROGRESS ----
+    function renderDashboardProgress() {
+      const stats = Progress.getStats();
+
+      // Stat cards
+      document.getElementById('statCalls').textContent  = stats.totalCalls;
+      document.getElementById('statUnique').textContent = stats.uniqueCompleted;
+      document.getElementById('statScore').textContent  = stats.totalCalls > 0 ? stats.avgScore + '%' : '—';
+      document.getElementById('statBadges').textContent = stats.badges.length + ' / ' + Progress.BADGE_DEFS.length;
+
+      // XP bar
+      document.getElementById('xpTotal').innerHTML =
+        stats.xp + ' <span data-i18n="xp_label">XP</span>';
+      document.getElementById('xpBarFill').style.width = stats.levelPct + '%';
+
+      document.getElementById('xpLevelName').textContent = stats.level.name;
+      document.getElementById('xpLevelIcon').textContent = '\u2B50'.repeat(stats.level.stars);
+
+      if (stats.nextLvl) {
+        document.getElementById('xpNextLabel').textContent =
+          'Prochain niveau : ' + stats.nextLvl.name + ' — ' + stats.nextLvl.minXP + ' XP';
+        document.getElementById('xpBarLabel').textContent =
+          stats.xp + ' / ' + stats.nextLvl.minXP + ' XP';
+      } else {
+        document.getElementById('xpNextLabel').textContent = 'Niveau maximum atteint !';
+        document.getElementById('xpBarLabel').textContent  = stats.xp + ' XP — Maximum';
+      }
+
+      // Badges grid
+      const grid     = document.getElementById('badgeGrid');
+      const earnedIds = Progress.getEarnedBadgeIds();
+      grid.innerHTML  = Progress.BADGE_DEFS.map(b => {
+        const earned  = earnedIds.includes(b.id);
+        return `
+          <div class="badge-chip ${earned ? 'earned' : 'locked'}"
+               style="${earned ? '--badge-color:' + b.color + ';' : ''}">
+            <div class="badge-icon">${b.icon}</div>
+            <div class="badge-name">${b.name}</div>
+            <div class="badge-desc">${b.desc}</div>
+          </div>`;
+      }).join('');
+    }
+
+    // ---- ACTIVITY FEED ----
+    function renderActivityFeed() {
+      const feed    = document.getElementById('activityFeed');
+      const history = Progress.getHistory();
+
+      if (history.length === 0) {
+        feed.innerHTML = `
+          <li class="activity-item">
+            <span style="color: var(--text-muted); font-size: 14px; padding: 8px 0;">
+              Aucune activité — commencez une simulation !
+            </span>
+          </li>`;
+        return;
+      }
+
+      function timeAgo(ts) {
+        const diff = Math.floor((Date.now() - ts) / 1000);
+        if (diff < 60)   return diff + 's';
+        if (diff < 3600) return Math.floor(diff / 60) + ' min';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'h';
+        return Math.floor(diff / 86400) + 'j';
+      }
+
+      function dotColor(score) {
+        if (score >= 80) return 'green';
+        if (score >= 50) return 'yellow';
+        return 'red';
+      }
+
+      const items = [...history].reverse().slice(0, 8);
+      feed.innerHTML = items.map((entry, i) => {
+        const scenario = typeof getScenarioById === 'function' ? getScenarioById(entry.id) : null;
+        const label    = scenario ? scenario.issue : entry.id;
+        const color    = dotColor(entry.score);
+        const result   = entry.score >= 80 ? 'Résolu' : entry.score >= 50 ? 'Partiel' : 'Échoué';
+        const num      = String(history.length - i).padStart(3, '0');
+        return `
+          <li class="activity-item">
+            <span class="activity-dot ${color}"></span>
+            <div class="activity-text"><strong>#${num}</strong> — ${result} : ${label}</div>
+            <span class="activity-time">${timeAgo(entry.date)}</span>
+          </li>`;
+      }).join('');
+    }
+
+    // ---- TICKET STATS (from localStorage state, fallback to static TICKETS) ----
+    function getLiveTickets() {
+      try {
+        const saved = localStorage.getItem('it_tickets_state');
+        if (saved) return JSON.parse(saved);
+      } catch(e) {}
+      return TICKETS;
+    }
+
+    function renderTicketStats() {
+      const T = getLiveTickets();
+      const cats = ['Windows','M365','Réseau','AD/GPO','Hardware','Sécurité','Server'];
+      const catColors = {
+        Windows: 'var(--accent)', M365: '#0ea5e9', Réseau: 'var(--success)',
+        'AD/GPO': '#8b5cf6', Hardware: '#f97316', Sécurité: 'var(--danger)', Server: '#64748b'
+      };
+
+      // Bar chart
+      const counts = {};
+      cats.forEach(c => { counts[c] = T.filter(t => t.category === c).length; });
+      const maxVal = Math.max(...Object.values(counts));
+      document.getElementById('barChart').innerHTML = cats.map(cat => `
+        <div class="bar-group">
+          <span class="bar-value">${counts[cat]}</span>
+          <div class="bar" style="height:${Math.round((counts[cat]/maxVal)*100)}%;background:${catColors[cat]};"></div>
+          <span class="bar-label">${cat}</span>
+        </div>`).join('');
+
+      // SLA by priority
+      const prios   = ['critical','high','medium','low'];
+      const pLabels = { critical:'Critique', high:'Haute', medium:'Moyenne', low:'Basse' };
+      document.getElementById('slaContainer').innerHTML = prios.map(p => {
+        const all = T.filter(t => t.priority === p);
+        const ok  = all.filter(t => t.sla === 'ok').length;
+        const pct = all.length ? Math.min(100, Math.round((ok / all.length) * 100)) : 0;
+        const col = pct >= 80 ? 'var(--success)' : pct >= 50 ? 'var(--warning)' : 'var(--danger)';
+        return `<div class="sla-row">
+          <span class="sla-label">${pLabels[p]}</span>
+          <div class="sla-bar-bg"><div class="sla-bar-fill" style="width:${pct}%;background:${col};"></div></div>
+          <span class="sla-percent" style="color:${col};">${pct}%</span>
+        </div>`;
+      }).join('');
+
+      // Ticket summary row — live counts
+      const total      = T.length;
+      const openCt     = T.filter(t => t.status === 'open').length;
+      const progressCt = T.filter(t => t.status === 'progress').length;
+      const resolvedCt = T.filter(t => t.status === 'resolved' || t.status === 'closed').length;
+      document.getElementById('ticketSummaryRow').innerHTML = `
+        <div class="tsum-card">
+          <span class="tsum-icon">&#9993;</span>
+          <div><div class="tsum-val">${total}</div><div class="tsum-label">Total tickets</div></div>
+        </div>
+        <div class="tsum-card">
+          <span class="tsum-icon" style="color:var(--accent);">&#9711;</span>
+          <div><div class="tsum-val" style="color:var(--accent);">${openCt}</div><div class="tsum-label">Ouverts</div></div>
+        </div>
+        <div class="tsum-card tsum-warn">
+          <span class="tsum-icon" style="color:var(--warning);">&#9202;</span>
+          <div><div class="tsum-val" style="color:var(--warning);">${progressCt}</div><div class="tsum-label">En cours</div></div>
+        </div>
+        <div class="tsum-card" style="border-color:rgba(63,185,80,0.4);background:rgba(63,185,80,0.05);">
+          <span class="tsum-icon" style="color:var(--success);">&#10003;</span>
+          <div><div class="tsum-val" style="color:var(--success);">${resolvedCt}</div><div class="tsum-label">Résolus</div></div>
+        </div>`;
+    }
+
+      // Initial render
+      document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+          renderDashboardProgress();
+          renderActivityFeed();
+          renderTicketStats();
+        }, 50);
+
+        // ---- SEARCH WITH SUGGESTIONS ----
+        const dashSearch = document.getElementById('dashSearch');
+        let activeIdx    = -1;
+
+        function getDropdown() {
+          return document.getElementById('searchDropdown');
+        }
+
+        function closeDropdown() {
+          const d = getDropdown();
+          if (d) d.remove();
+          activeIdx = -1;
+        }
+
+        function openTicketsWithQuery(q) {
+          window.location.href = 'tickets.html?q=' + encodeURIComponent(q);
+        }
+
+        function renderDropdown(query) {
+          closeDropdown();
+          if (!query) return;
+
+          const q     = query.toLowerCase();
+          const T     = getLiveTickets();
+          const matches = T.filter(t =>
+            t.issue.toLowerCase().includes(q)    ||
+            t.caller.toLowerCase().includes(q)   ||
+            t.category.toLowerCase().includes(q) ||
+            t.dept.toLowerCase().includes(q)
+          ).slice(0, 3);
+
+          const dropdown = document.createElement('div');
+          dropdown.className = 'search-dropdown';
+          dropdown.id = 'searchDropdown';
+
+          if (matches.length === 0) {
+            dropdown.innerHTML = `<div class="ss-no-results">Aucun résultat pour « ${query} »</div>`;
+          } else {
+            dropdown.innerHTML = matches.map((t, i) => `
+              <div class="search-suggestion" data-q="${t.issue}" data-idx="${i}">
+                <div class="ss-title">${t.issue}</div>
+                <div class="ss-meta">${t.category} &middot; ${t.caller}</div>
+              </div>`).join('');
+            dropdown.querySelectorAll('.search-suggestion').forEach(el => {
+              el.addEventListener('mousedown', e => {
+                e.preventDefault();
+                openTicketsWithQuery(el.dataset.q);
+              });
+            });
+          }
+
+          dashSearch.closest('.search-box').appendChild(dropdown);
+          activeIdx = -1;
+        }
+
+        dashSearch.addEventListener('input', () => {
+          renderDropdown(dashSearch.value.trim());
+        });
+
+        dashSearch.addEventListener('keydown', e => {
+          const items = document.querySelectorAll('.search-suggestion');
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeIdx = Math.min(activeIdx + 1, items.length - 1);
+            items.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeIdx = Math.max(activeIdx - 1, 0);
+            items.forEach((el, i) => el.classList.toggle('active', i === activeIdx));
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const active = document.querySelector('.search-suggestion.active');
+            const q = active ? active.dataset.q : dashSearch.value.trim();
+            if (q) openTicketsWithQuery(q);
+          } else if (e.key === 'Escape') {
+            closeDropdown();
+            dashSearch.blur();
+          }
+        });
+
+        dashSearch.addEventListener('blur', () => {
+          setTimeout(closeDropdown, 150);
+        });
+      });
+  </script>
+</body>
+</html>

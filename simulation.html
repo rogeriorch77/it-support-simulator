@@ -1,0 +1,707 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Support Simulator — Simulation</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ---- MINI TERMINAL in simulation ---- */
+    .mini-terminal {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      overflow: hidden;
+      font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+      font-size: 12px;
+      margin-top: 12px;
+    }
+    .mini-term-bar {
+      background: #161b22;
+      padding: 6px 12px;
+      border-bottom: 1px solid #30363d;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .mini-term-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .mini-term-title { color: #8b949e; font-size: 11px; }
+    .mini-term-output {
+      background: #0d1117; padding: 10px 12px;
+      max-height: 160px; overflow-y: auto; color: #c9d1d9; line-height: 1.6;
+    }
+    .mini-term-input-row {
+      display: flex; align-items: center; gap: 0;
+      padding: 6px 12px; background: #0d1117;
+      border-top: 1px solid #21262d;
+    }
+    .mini-term-prompt { color: #58a6ff; font-weight: 700; font-size: 12px; white-space: nowrap; }
+    .mini-term-input-row input {
+      flex: 1; background: transparent; border: none; outline: none;
+      color: #c9d1d9; font-family: 'Cascadia Code', monospace; font-size: 12px;
+      padding: 0 6px; caret-color: #58a6ff;
+    }
+    .term-line  { color: #c9d1d9; white-space: pre-wrap; word-break: break-all; }
+    .term-cmd   { color: #c9d1d9; }
+    .term-cmd .term-prompt { color: #58a6ff; font-weight: 700; }
+    .term-ok    { color: #3fb950; }
+    .term-error { color: #f85149; }
+    .term-warn  { color: #d29922; }
+    .term-info  { color: #58a6ff; }
+    .term-val   { color: #79c0ff; }
+    .term-header { color: #f0f6fc; font-weight: 700; }
+    .term-cmd-name { color: #ff7b72; }
+    .term-desc  { color: #8b949e; }
+
+    /* ---- CATEGORY PILLS ---- */
+    .cat-pills {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px;
+    }
+    .cat-pill {
+      padding: 7px 16px; border-radius: 20px; font-size: 13px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text-secondary); cursor: pointer;
+      transition: all 0.15s ease; font-weight: 500;
+    }
+    .cat-pill:hover { border-color: var(--accent); color: var(--accent); }
+    .cat-pill.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+    /* ---- SCENARIO CARDS ---- */
+    .scenario-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .scenario-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; cursor: pointer;
+      transition: all 0.2s ease; position: relative;
+    }
+    .scenario-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .scenario-card.completed { border-color: var(--success); }
+    .scenario-card .sc-badge {
+      position: absolute; top: 12px; right: 12px;
+      font-size: 11px; font-weight: 700; padding: 3px 8px;
+      border-radius: 10px;
+    }
+    .sc-badge.easy     { background: rgba(34,197,94,0.15);  color: var(--success); }
+    .sc-badge.medium   { background: rgba(245,158,11,0.15); color: var(--warning); }
+    .sc-badge.n2_medium{ background: rgba(249,115,22,0.15); color: #f97316; }
+    .sc-badge.hard     { background: rgba(239,68,68,0.15);  color: var(--danger); }
+    .scenario-card .sc-cat {
+      font-size: 11px; color: var(--text-muted); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
+    }
+    .scenario-card .sc-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .scenario-card .sc-caller { font-size: 13px; color: var(--text-secondary); }
+    .scenario-card .sc-check {
+      position: absolute; bottom: 12px; right: 12px;
+      color: var(--success); font-size: 18px; display: none;
+    }
+    .scenario-card.completed .sc-check { display: block; }
+
+    /* ---- ACTIVE CALL ---- */
+    .call-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .call-layout { grid-template-columns: 1fr; }
+    }
+    .call-info-panel { display: flex; flex-direction: column; gap: 12px; }
+    .call-top-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 20px; background: var(--bg-sidebar);
+      border-radius: var(--radius); border: 1px solid var(--border);
+    }
+    .caller-identity strong { font-size: 15px; display: block; }
+    .caller-identity span { font-size: 13px; color: var(--text-muted); }
+    .call-meta { display: flex; gap: 12px; align-items: center; }
+    .live-timer {
+      background: var(--bg-input); padding: 6px 14px; border-radius: var(--radius);
+      font-family: monospace; font-size: 14px; font-weight: 700;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--danger);
+      animation: blink 1s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+    .mood-chip {
+      padding: 6px 12px; border-radius: var(--radius);
+      font-size: 13px; background: var(--bg-input);
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    /* Chat */
+    .chat-window {
+      background: var(--bg-main); border-radius: var(--radius);
+      border: 1px solid var(--border);
+      max-height: 360px; overflow-y: auto; padding: 16px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .bubble { max-width: 85%; padding: 10px 14px; border-radius: 12px;
+              font-size: 14px; line-height: 1.6; animation: fadeUp 0.3s ease; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+    .bubble.caller { align-self: flex-start; background: var(--bg-card); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .bubble.tech   { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }
+    .bubble .bname { font-size: 11px; font-weight: 700; opacity: 0.6; margin-bottom: 3px; }
+
+    /* Options */
+    .options-panel { display: flex; flex-direction: column; gap: 8px; }
+    .option-btn {
+      display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius); cursor: pointer; transition: all 0.15s;
+      font-size: 13px; text-align: left; color: var(--text-primary);
+      width: 100%;
+    }
+    .option-btn:hover { border-color: var(--accent); background: rgba(59,130,246,0.06); }
+    .option-btn.correct { border-color: var(--success) !important; background: rgba(34,197,94,0.1) !important; }
+    .option-btn.wrong   { border-color: var(--danger)  !important; background: rgba(239,68,68,0.1)  !important; }
+    .option-letter {
+      width: 26px; height: 26px; border-radius: 50%; background: var(--bg-input);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 12px; flex-shrink: 0;
+    }
+    .option-feedback {
+      font-size: 12px; margin-top: 6px; padding: 8px 12px;
+      border-radius: 6px; display: none;
+    }
+    .option-feedback.show { display: block; }
+    .option-feedback.correct { background: rgba(34,197,94,0.1); color: var(--success); }
+    .option-feedback.wrong   { background: rgba(239,68,68,0.1); color: var(--danger); }
+
+    /* Hint */
+    .hint-panel {
+      background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3);
+      border-radius: var(--radius); padding: 12px 16px; font-size: 13px;
+      color: var(--warning); display: none;
+    }
+    .hint-panel.visible { display: block; }
+    .hint-panel .hint-title { font-weight: 700; margin-bottom: 4px; }
+
+    /* Score */
+    .score-wrap { text-align: center; padding: 40px; }
+    .score-ring {
+      width: 120px; height: 120px; border-radius: 50%;
+      border: 6px solid var(--border); margin: 0 auto 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; font-weight: 800;
+    }
+    .score-ring.s-good { border-color: var(--success); color: var(--success); }
+    .score-ring.s-ok   { border-color: var(--warning); color: var(--warning); }
+    .score-ring.s-bad  { border-color: var(--danger);  color: var(--danger); }
+    .score-stats { display: flex; justify-content: center; gap: 32px; flex-wrap: wrap; margin: 20px 0; }
+    .score-stat .val { font-size: 22px; font-weight: 700; display: block; }
+    .score-stat .lbl { font-size: 12px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div class="sidebar-overlay"></div>
+
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">IT</div>
+          <div>
+            <span class="logo-text">IT Support</span>
+            <span class="logo-sub">Simulator v1.0</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html"><span class="nav-icon">&#9632;</span><span data-i18n="dashboard">Tableau de bord</span></a>
+        <a href="tickets.html"><span class="nav-icon">&#9993;</span><span data-i18n="tickets">Tickets</span></a>
+        <a href="simulation.html" class="active"><span class="nav-icon">&#9742;</span><span data-i18n="simulation">Simulation</span></a>
+        <a href="terminal.html"><span class="nav-icon">&#9654;</span><span data-i18n="nav_terminal">Terminal</span></a>
+        <a href="knowledge.html"><span class="nav-icon">&#9733;</span><span data-i18n="knowledge">Base de connaissances</span></a>
+        <a href="entretiens.html"><span class="nav-icon">&#9998;</span><span data-i18n="interviews">Entretiens</span></a>
+        <a href="quiz.html"><span class="nav-icon">&#9889;</span><span>Quiz</span></a>
+      </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger">&#9776;</button>
+        </div>
+        <div class="topbar-right">
+          <div class="user-info">
+            <div class="user-avatar">U</div>
+            <span class="user-name">User</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="page-header">
+          <h1 data-i18n="simulation_title">Simulation d'appels</h1>
+          <p data-i18n="simulation_subtitle">Recevez de faux appels et résolvez les problèmes en temps réel</p>
+        </div>
+
+        <!-- =====================
+             PANEL 1: SCENARIO LIST
+             ===================== -->
+        <div id="panelList">
+          <!-- Filter pills -->
+          <div class="cat-pills">
+            <button class="cat-pill active" data-cat="all">Tous <span id="countBadgeAll"></span></button>
+            <button class="cat-pill" data-cat="easy"       style="border-color: rgba(34,197,94,0.4);  color: var(--success);">N1 — Facile</button>
+            <button class="cat-pill" data-cat="n1_medium"  style="border-color: rgba(245,158,11,0.4); color: var(--warning);">N1 — Moyen</button>
+            <button class="cat-pill" data-cat="n2_medium"  style="border-color: rgba(249,115,22,0.4); color: #f97316;">N2 — Moyen</button>
+            <button class="cat-pill" data-cat="hard"       style="border-color: rgba(239,68,68,0.4);  color: var(--danger);">N2 — Difficile</button>
+            <button class="cat-pill" data-cat="Windows">Windows</button>
+            <button class="cat-pill" data-cat="AD/GPO">AD / GPO</button>
+            <button class="cat-pill" data-cat="M365">Microsoft 365</button>
+            <button class="cat-pill" data-cat="Réseau">Réseaux</button>
+            <button class="cat-pill" data-cat="Server">Serveur</button>
+            <button class="cat-pill" data-cat="Azure">Azure</button>
+            <button class="cat-pill" data-cat="Hardware">Matériel</button>
+            <button class="cat-pill" data-cat="Sécurité" style="border-color: rgba(168,85,247,0.4); color: #a855f7;">Sécurité</button>
+          </div>
+
+          <!-- Scenario grid -->
+          <div class="scenario-grid" id="scenarioGrid"></div>
+        </div>
+
+        <!-- =====================
+             PANEL 2: RINGING
+             ===================== -->
+        <div id="panelRinging" style="display:none; max-width: 480px; margin: 0 auto;">
+          <div class="card" style="text-align:center; padding: 48px;">
+            <div style="font-size: 64px; animation: pulse 1.5s infinite;" id="ringIcon">&#9742;</div>
+            <h2 id="ringName" style="margin: 16px 0 4px;">—</h2>
+            <p id="ringDept" style="color: var(--text-muted); margin-bottom: 8px;">—</p>
+            <div id="ringMood" style="display:inline-flex; align-items:center; gap:8px; background:var(--bg-input); padding:6px 14px; border-radius:var(--radius); margin-bottom: 24px; font-size: 14px;">
+              <span id="ringMoodFace">&#128528;</span>
+              <span id="ringMoodText">Calme</span>
+            </div>
+            <br>
+            <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+              <button class="btn btn-success" id="btnAccept" data-i18n="accept_call">Accepter l'appel</button>
+              <button class="btn btn-outline" onclick="resetToList()" data-i18n="cancel">Annuler</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- =====================
+             PANEL 3: ACTIVE CALL
+             ===================== -->
+        <div id="panelCall" style="display:none;">
+
+          <!-- Top bar -->
+          <div class="call-top-bar" style="margin-bottom: 16px;">
+            <div class="caller-identity">
+              <strong id="callName">—</strong>
+              <span id="callDept">—</span>
+            </div>
+            <div class="call-meta">
+              <div class="mood-chip">
+                <span id="callMoodFace">&#128528;</span>
+                <span id="callMoodText">Calme</span>
+              </div>
+              <div class="live-timer">
+                <span class="live-dot"></span>
+                <span id="timerDisplay">00:00</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="call-layout">
+
+            <!-- LEFT: Chat + Terminal -->
+            <div class="call-info-panel">
+              <div class="chat-window" id="chatWindow"></div>
+
+              <!-- Mini Terminal -->
+              <div class="mini-terminal" id="miniTerminal">
+                <div class="mini-term-bar">
+                  <span class="mini-term-dot" style="background:#ff5f57;"></span>
+                  <span class="mini-term-dot" style="background:#febc2e;"></span>
+                  <span class="mini-term-dot" style="background:#28c840;"></span>
+                  <span class="mini-term-title" id="miniTermTitle">Terminal</span>
+                </div>
+                <div class="mini-term-output" id="miniTermOutput"></div>
+                <div class="mini-term-input-row">
+                  <span class="mini-term-prompt" id="miniTermPrompt">PC&gt;</span>
+                  <input type="text" id="miniTermInput" autocomplete="off" spellcheck="false" placeholder="Commande...">
+                </div>
+              </div>
+            </div>
+
+            <!-- RIGHT: Question + Options -->
+            <div>
+              <div class="card" id="questionCard">
+                <p id="stepCounter" style="font-size:11px; color:var(--text-muted); margin-bottom: 8px;"></p>
+                <p id="questionText" style="font-size:15px; font-weight:600; margin-bottom:16px; line-height:1.5;"></p>
+                <div class="options-panel" id="optionsPanel"></div>
+                <div class="hint-panel" id="hintPanel">
+                  <div class="hint-title" data-i18n="hint">💡 Indice</div>
+                  <div id="hintText"></div>
+                </div>
+                <div style="margin-top: 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                  <button class="btn btn-outline" onclick="toggleHint()" id="btnHint" data-i18n="show_hint" style="font-size:12px; padding: 6px 14px;">💡 Afficher un indice</button>
+                  <span id="cmdSuggest" style="font-size: 12px; color: var(--accent); font-family: monospace; display:none;"></span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- =====================
+             PANEL 4: SCORE
+             ===================== -->
+        <div id="panelScore" style="display:none; max-width: 500px; margin: 0 auto;">
+          <div class="card">
+            <div class="score-wrap">
+              <h2 style="margin-bottom: 24px;" data-i18n="scenario_complete">Scénario terminé !</h2>
+              <div class="score-ring" id="scoreRing">0%</div>
+              <div class="score-stats">
+                <div class="score-stat"><span class="val" id="scoreTime">—</span><span class="lbl" data-i18n="time_spent">Temps</span></div>
+                <div class="score-stat"><span class="val" id="scoreCorrect">—</span><span class="lbl" data-i18n="score_correct_label">Correct</span></div>
+                <div class="score-stat"><span class="val" id="scoreHints">—</span><span class="lbl" data-i18n="hints_used">Indices utilisés</span></div>
+                <div class="score-stat"><span class="val" id="scoreDiff">—</span><span class="lbl" data-i18n="difficulty">Difficulté</span></div>
+              </div>
+              <p id="scoreFeedback" style="color:var(--text-secondary); font-size:14px; margin: 16px 0 12px;"></p>
+              <!-- XP earned -->
+              <div id="xpEarnedBox" class="xp-earned-box" style="display:none;">
+                <span class="xp-icon">&#11088;</span>
+                <span id="xpEarnedText">+50 XP</span>
+              </div>
+              <!-- New badges unlocked -->
+              <div id="newBadgesList" class="new-badge-list"></div>
+              <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-top:16px;">
+                <button class="btn btn-primary" onclick="resetToList()" data-i18n="choose_scenario">← Choisir un scénario</button>
+                <button class="btn btn-success" id="btnNextRandom" onclick="playRandom()" data-i18n="random_scenario">Aléatoire ►</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <footer class="app-footer">
+        <span data-i18n="footer">IT Support Simulator — Plateforme d'apprentissage</span>
+      </footer>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/terminal.js"></script>
+  <script src="js/scenarios.js"></script>
+  <script src="js/progress.js"></script>
+  <script>
+    // ---- USER ----
+    const userName = localStorage.getItem('user') || 'Technicien';
+    document.querySelector('.user-avatar').textContent = userName.charAt(0).toUpperCase();
+    document.querySelector('.user-name').textContent = userName;
+
+    // ---- STATE ----
+    let currentScenario = null;
+    let currentStep = 0;
+    let correctCount = 0;
+    let hintUsed = 0;
+    let timerSec = 0;
+    let timerInterval = null;
+    let completedIds = JSON.parse(localStorage.getItem('completedScenarios') || '[]');
+    let currentCatFilter = 'all';
+
+    // ---- MOODS ----
+    const moodFaces = { calm:'😊', frustrated:'😤', angry:'😠', panicked:'😱' };
+
+    // ---- HELPERS ----
+    function catLabel(cat) {
+      const m = { 'M365': 'Microsoft 365', 'Réseau': 'Réseaux', 'Server': 'Serveur', 'Hardware': 'Matériel' };
+      return m[cat] || cat;
+    }
+
+    function diffBadgeHTML(s) {
+      if (s.difficulty === 'easy')                              return '<span class="sc-badge easy">N1 — Facile</span>';
+      if (s.difficulty === 'medium' && s.level === 1)          return '<span class="sc-badge medium">N1 — Moyen</span>';
+      if (s.difficulty === 'medium' && s.level === 2)          return '<span class="sc-badge n2_medium">N2 — Moyen</span>';
+      return '<span class="sc-badge hard">N2 — Difficile</span>';
+    }
+
+    // ---- RENDER SCENARIO LIST ----
+    function renderList(filter) {
+      currentCatFilter = filter;
+      const grid = document.getElementById('scenarioGrid');
+      const allS = getAllScenarios();
+      const cats = ['Windows','AD/GPO','M365','Réseau','Server','Azure','Hardware','Sécurité'];
+
+      const filtered = allS.filter(s => {
+        if (filter === 'all')        return true;
+        if (filter === 'easy')       return s.difficulty === 'easy';
+        if (filter === 'n1_medium')  return s.difficulty === 'medium' && s.level === 1;
+        if (filter === 'n2_medium')  return s.difficulty === 'medium' && s.level === 2;
+        if (filter === 'hard')       return s.difficulty === 'hard';
+        return s.category === filter;
+      });
+
+      grid.innerHTML = filtered.map(s => `
+        <div class="scenario-card ${completedIds.includes(s.id) ? 'completed' : ''}"
+             onclick="startScenario('${s.id}')">
+          ${diffBadgeHTML(s)}
+          <div class="sc-cat">${catLabel(s.category)}</div>
+          <div class="sc-title">${s.issue}</div>
+          <div class="sc-caller">&#128100; ${s.caller} — ${s.dept}</div>
+          ${completedIds.includes(s.id) ? '<span class="sc-check">&#10003;</span>' : ''}
+        </div>
+      `).join('');
+
+      // Update filter pills
+      document.querySelectorAll('.cat-pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.cat === filter);
+      });
+    }
+
+    document.querySelectorAll('.cat-pill').forEach(p => {
+      p.addEventListener('click', () => renderList(p.dataset.cat));
+    });
+
+    // ---- START SCENARIO ----
+    function startScenario(id) {
+      currentScenario = getScenarioById(id);
+      if (!currentScenario) return;
+      currentStep = 0;
+      correctCount = 0;
+      hintUsed = 0;
+      timerSec = 0;
+
+      document.getElementById('ringName').textContent = currentScenario.caller;
+      document.getElementById('ringDept').textContent = currentScenario.dept;
+      document.getElementById('ringMoodFace').textContent = moodFaces[currentScenario.mood];
+      document.getElementById('ringMoodText').textContent = t('mood_' + currentScenario.mood);
+
+      showPanel('panelRinging');
+    }
+
+    function playRandom() {
+      const diffs = ['easy','medium','hard'];
+      const d = diffs[Math.floor(Math.random() * diffs.length)];
+      const pool = SCENARIOS[d];
+      const s = pool[Math.floor(Math.random() * pool.length)];
+      startScenario(s.id);
+    }
+
+    // ---- ACCEPT CALL ----
+    document.getElementById('btnAccept').addEventListener('click', () => {
+      const s = currentScenario;
+      document.getElementById('callName').textContent = s.caller;
+      document.getElementById('callDept').textContent = s.dept;
+      document.getElementById('callMoodFace').textContent = moodFaces[s.mood];
+      document.getElementById('callMoodText').textContent = t('mood_' + s.mood);
+
+      // Init mini terminal
+      if (s.terminalContext) {
+        Terminal.setContext(s.terminalContext);
+        document.getElementById('miniTermTitle').textContent = s.terminalContext.hostname || 'Terminal';
+        document.getElementById('miniTermPrompt').textContent = (s.terminalContext.hostname || 'PC') + '>';
+      }
+      Terminal.init('#miniTermOutput', '#miniTermInput', null);
+
+      // Start timer
+      timerInterval = setInterval(() => {
+        timerSec++;
+        const m = String(Math.floor(timerSec/60)).padStart(2,'0');
+        const sec = String(timerSec%60).padStart(2,'0');
+        document.getElementById('timerDisplay').textContent = m+':'+sec;
+      }, 1000);
+
+      // Show initial messages
+      const chat = document.getElementById('chatWindow');
+      chat.innerHTML = '';
+      s.messages.forEach(msg => addBubble(msg.from, msg.text));
+
+      showPanel('panelCall');
+      showStep();
+    });
+
+    // ---- CHAT BUBBLE ----
+    function addBubble(from, text) {
+      const chat = document.getElementById('chatWindow');
+      const name = from === 'caller' ? currentScenario.caller : userName;
+      const div = document.createElement('div');
+      div.className = 'bubble ' + (from === 'caller' ? 'caller' : 'tech');
+      div.innerHTML = `<div class="bname">${name}</div>${text}`;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // ---- SHOW STEP ----
+    function showStep() {
+      if (currentStep >= currentScenario.steps.length) {
+        endCall(); return;
+      }
+      const step = currentScenario.steps[currentStep];
+      const total = currentScenario.steps.length;
+      const letters = ['A','B','C','D'];
+
+      document.getElementById('stepCounter').textContent = `${t('step')} ${currentStep+1} / ${total}`;
+      document.getElementById('questionText').textContent = step.question;
+
+      // Options
+      const panel = document.getElementById('optionsPanel');
+      panel.innerHTML = step.options.map((opt, i) => `
+        <div>
+          <button class="option-btn" data-idx="${i}" data-correct="${opt.correct}">
+            <span class="option-letter">${letters[i]}</span>
+            <span>${opt.text}</span>
+          </button>
+          <div class="option-feedback ${opt.correct ? 'correct' : 'wrong'}" id="fb-${i}">
+            ${opt.correct ? '✓ ' : '✗ '} ${opt.feedback || ''}
+          </div>
+        </div>
+      `).join('');
+
+      panel.querySelectorAll('.option-btn').forEach(btn => {
+        btn.addEventListener('click', function() { handleAnswer(this); });
+      });
+
+      // Hint
+      document.getElementById('hintText').textContent = step.hint || '';
+      document.getElementById('hintPanel').classList.remove('visible');
+      document.getElementById('btnHint').style.display = 'inline-flex';
+
+      // Terminal command suggestion
+      const cmdEl = document.getElementById('cmdSuggest');
+      if (step.terminalCommand) {
+        cmdEl.textContent = t('try_cmd') + ' ' + step.terminalCommand;
+        cmdEl.style.display = 'inline';
+      } else {
+        cmdEl.style.display = 'none';
+      }
+    }
+
+    // ---- HANDLE ANSWER ----
+    function handleAnswer(btn) {
+      const isCorrect = btn.dataset.correct === 'true';
+      const idx = btn.dataset.idx;
+      const panel = document.getElementById('optionsPanel');
+      const step = currentScenario.steps[currentStep];
+
+      // Show feedback for this option
+      const fbEl = document.getElementById('fb-' + idx);
+      if (fbEl) fbEl.classList.add('show');
+
+      if (isCorrect) {
+        btn.classList.add('correct');
+        // Disable all
+        panel.querySelectorAll('.option-btn').forEach(b => {
+          b.style.pointerEvents = 'none';
+          if (b.dataset.correct === 'true') b.classList.add('correct');
+        });
+        correctCount++;
+
+        // Tech response in chat
+        addBubble('tech', btn.querySelector('span:last-child').textContent);
+
+        // Caller reply
+        if (step.callerReply) {
+          setTimeout(() => addBubble('caller', step.callerReply), 900);
+        }
+
+        currentStep++;
+        setTimeout(showStep, 2000);
+      } else {
+        btn.classList.add('wrong');
+        btn.style.pointerEvents = 'none';
+      }
+    }
+
+    // ---- HINT ----
+    function toggleHint() {
+      const hp = document.getElementById('hintPanel');
+      hp.classList.add('visible');
+      document.getElementById('btnHint').style.display = 'none';
+      hintUsed++;
+    }
+
+    // ---- END CALL ----
+    function endCall() {
+      clearInterval(timerInterval);
+      const total = currentScenario.steps.length;
+      const pct   = Math.round((correctCount / total) * 100);
+      const m     = Math.floor(timerSec / 60);
+      const s     = timerSec % 60;
+
+      // Mark completed (legacy list)
+      if (pct >= 50 && !completedIds.includes(currentScenario.id)) {
+        completedIds.push(currentScenario.id);
+        localStorage.setItem('completedScenarios', JSON.stringify(completedIds));
+      }
+
+      // Record in Progress system
+      const { xpEarned, newBadges } = Progress.addResult({
+        id:         currentScenario.id,
+        category:   currentScenario.category,
+        difficulty: currentScenario.difficulty,
+        score:      pct,
+        duration:   timerSec
+      });
+
+      // Score ring
+      const ring = document.getElementById('scoreRing');
+      ring.textContent = pct + '%';
+      ring.className = 'score-ring ' + (pct >= 80 ? 's-good' : pct >= 50 ? 's-ok' : 's-bad');
+
+      document.getElementById('scoreTime').textContent    = m + 'min ' + s + 's';
+      document.getElementById('scoreCorrect').textContent = correctCount + '/' + total;
+      document.getElementById('scoreHints').textContent   = hintUsed;
+      document.getElementById('scoreDiff').textContent    = t('diff_' + currentScenario.difficulty + '_badge');
+      document.getElementById('scoreFeedback').textContent =
+        pct >= 80 ? t('score_excellent') :
+        pct >= 50 ? t('score_good') :
+                   t('score_poor');
+
+      // XP earned display
+      const xpBox = document.getElementById('xpEarnedBox');
+      document.getElementById('xpEarnedText').textContent = '+' + xpEarned + ' XP';
+      xpBox.style.display = 'inline-flex';
+
+      // New badges
+      const badgesList = document.getElementById('newBadgesList');
+      badgesList.innerHTML = '';
+      if (newBadges.length > 0) {
+        const lang = App.currentLang || 'fr';
+        newBadges.forEach(b => {
+          const chip = document.createElement('div');
+          chip.className = 'new-badge-chip';
+          const name = lang === 'en' ? b.nameEn : lang === 'pt' ? b.namePt : b.nameFr;
+          chip.innerHTML = b.icon + ' ' + name;
+          badgesList.appendChild(chip);
+        });
+      }
+
+      showPanel('panelScore');
+    }
+
+    // ---- NAVIGATION ----
+    function showPanel(id) {
+      ['panelList','panelRinging','panelCall','panelScore'].forEach(p => {
+        document.getElementById(p).style.display = p === id ? 'block' : 'none';
+      });
+    }
+
+    function resetToList() {
+      clearInterval(timerInterval);
+      timerSec = 0;
+      document.getElementById('timerDisplay').textContent = '00:00';
+      renderList(currentCatFilter);
+      showPanel('panelList');
+    }
+
+    // ---- INIT ----
+    setTimeout(() => renderList('all'), 50);
+
+  </script>
+</body>
+</html>

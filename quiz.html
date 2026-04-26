@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Technique - IT Support</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Quiz Screens ── */
+    .quiz-screen { display:none; }
+    .quiz-screen.active { display:block; }
+
+    /* Start screen */
+    .quiz-start-hero { text-align:center; padding:40px 20px 24px; }
+    .quiz-xp-total { display:inline-flex; align-items:center; gap:10px; background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff; border-radius:50px; padding:10px 28px; font-size:1.3rem; font-weight:700; margin:16px 0 8px; box-shadow:0 4px 18px rgba(124,58,237,.35); }
+    .quiz-xp-total .xp-icon { font-size:1.5rem; }
+    .quiz-level-label { color:var(--text-muted); font-size:.9rem; margin-bottom:24px; }
+    .quiz-stats-row { display:flex; gap:16px; justify-content:center; margin:0 0 32px; flex-wrap:wrap; }
+    .qstat { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px 22px; text-align:center; min-width:110px; }
+    .qstat-val { font-size:1.5rem; font-weight:700; color:var(--accent); }
+    .qstat-lbl { font-size:.75rem; color:var(--text-muted); margin-top:2px; }
+    .quiz-cat-grid { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:28px; }
+    .cat-btn { padding:7px 16px; border-radius:20px; border:2px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; font-size:.85rem; transition:all .15s; }
+    .cat-btn.selected { border-color:var(--accent); background:var(--accent); color:#fff; }
+    .btn-start-quiz { font-size:1.1rem; padding:14px 48px; border-radius:50px; }
+
+    /* Question screen */
+    .quiz-header { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px; flex-wrap:wrap; }
+    .quiz-progress-info { font-size:.9rem; color:var(--text-muted); white-space:nowrap; }
+    .quiz-xp-live { display:flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:5px 14px; font-weight:700; color:#7c3aed; font-size:.9rem; }
+    .quiz-progress-bar { height:6px; background:var(--border); border-radius:3px; margin-bottom:18px; overflow:hidden; }
+    .quiz-progress-fill { height:100%; background:linear-gradient(90deg,var(--accent),#7c3aed); border-radius:3px; transition:width .3s; }
+
+    /* Timer */
+    .timer-wrap { display:flex; align-items:center; gap:10px; margin-bottom:20px; }
+    .timer-bar { flex:1; height:10px; background:var(--border); border-radius:5px; overflow:hidden; }
+    .timer-fill { height:100%; border-radius:5px; transition:width .1s linear, background .5s; background:#22c55e; }
+    .timer-fill.warn { background:#f59e0b; }
+    .timer-fill.danger { background:#ef4444; }
+    .timer-count { font-size:1.1rem; font-weight:700; min-width:30px; text-align:right; }
+    .timer-count.danger { color:#ef4444; }
+
+    /* Question card */
+    .question-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:20px; }
+    .question-meta { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+    .badge-cat, .badge-diff, .badge-type { font-size:.72rem; padding:3px 10px; border-radius:10px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+    .badge-diff.n1 { background:#dcfce7; color:#166534; }
+    .badge-diff.n2 { background:#fef3c7; color:#92400e; }
+    .badge-cat { background:rgba(99,102,241,.12); color:var(--accent); }
+    .badge-type { background:var(--bg); color:var(--text-muted); border:1px solid var(--border); }
+    .question-text { font-size:1.15rem; font-weight:600; line-height:1.5; color:var(--text); }
+    .question-hint { font-size:.83rem; color:var(--text-muted); margin-top:8px; }
+
+    /* Options */
+    .options-grid { display:grid; gap:10px; }
+    .option-btn { display:flex; align-items:center; gap:12px; padding:13px 18px; border-radius:12px; border:2px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; text-align:left; font-size:.95rem; transition:all .15s; width:100%; }
+    .option-btn:hover:not(:disabled) { border-color:var(--accent); background:rgba(99,102,241,.06); }
+    .option-btn .opt-letter { width:28px; height:28px; border-radius:50%; background:var(--bg); border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:700; flex-shrink:0; transition:all .15s; }
+    .option-btn.selected { border-color:var(--accent); background:rgba(99,102,241,.1); }
+    .option-btn.selected .opt-letter { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .option-btn.correct { border-color:#22c55e; background:#f0fdf4; color:#15803d; }
+    .option-btn.correct .opt-letter { background:#22c55e; color:#fff; border-color:#22c55e; }
+    .option-btn.wrong { border-color:#ef4444; background:#fef2f2; color:#dc2626; }
+    .option-btn.wrong .opt-letter { background:#ef4444; color:#fff; border-color:#ef4444; }
+    .option-btn:disabled { cursor:default; }
+
+    .submit-row { display:flex; justify-content:flex-end; margin-top:12px; }
+
+    /* Feedback popup */
+    .feedback-toast { position:fixed; top:80px; left:50%; transform:translateX(-50%) translateY(-20px); background:var(--surface); border-radius:12px; padding:14px 24px; font-weight:700; font-size:1rem; box-shadow:0 8px 32px rgba(0,0,0,.18); border:2px solid; z-index:999; opacity:0; transition:all .3s; pointer-events:none; white-space:nowrap; }
+    .feedback-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    .feedback-toast.correct-fb { border-color:#22c55e; color:#15803d; }
+    .feedback-toast.wrong-fb { border-color:#ef4444; color:#dc2626; }
+    .xp-float { position:fixed; font-size:1.4rem; font-weight:800; color:#7c3aed; pointer-events:none; z-index:1000; opacity:0; transition:all .8s ease-out; text-shadow:0 2px 8px rgba(124,58,237,.3); }
+    .xp-float.show { opacity:1; transform:translateY(-60px); }
+
+    /* Results screen */
+    .result-hero { text-align:center; padding:32px 20px; }
+    .result-score-circle { width:120px; height:120px; border-radius:50%; border:5px solid var(--accent); margin:0 auto 16px; display:flex; flex-direction:column; align-items:center; justify-content:center; background:var(--surface); }
+    .rsc-num { font-size:2rem; font-weight:800; color:var(--accent); line-height:1; }
+    .rsc-lbl { font-size:.7rem; color:var(--text-muted); }
+    .result-xp-earned { font-size:2rem; font-weight:800; color:#7c3aed; margin:8px 0 4px; }
+    .result-breakdown { display:grid; gap:8px; margin:24px 0; }
+    .rb-row { display:flex; justify-content:space-between; align-items:center; padding:10px 16px; background:var(--surface); border:1px solid var(--border); border-radius:10px; font-size:.9rem; }
+    .rb-row.correct-row { border-left:3px solid #22c55e; }
+    .rb-row.wrong-row { border-left:3px solid #ef4444; }
+    .rb-xp { font-weight:700; color:#7c3aed; }
+    .result-actions { display:flex; gap:12px; justify-content:center; margin-top:24px; flex-wrap:wrap; }
+    .level-progress-wrap { margin:20px 0; }
+    .level-info { display:flex; justify-content:space-between; font-size:.85rem; color:var(--text-muted); margin-bottom:6px; }
+    .level-bar { height:12px; background:var(--border); border-radius:6px; overflow:hidden; }
+    .level-fill { height:100%; background:linear-gradient(90deg,#7c3aed,#4f46e5); border-radius:6px; transition:width 1s ease; }
+  </style>
+</head>
+<body>
+  <div class="sidebar-overlay"></div>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">IT</div>
+          <div>
+            <span class="logo-text">IT Support</span>
+            <span class="logo-sub">Simulator v1.0</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html"><span class="nav-icon">&#9632;</span><span data-i18n="dashboard">Tableau de bord</span></a>
+        <a href="tickets.html"><span class="nav-icon">&#9993;</span><span data-i18n="tickets">Tickets</span></a>
+        <a href="simulation.html"><span class="nav-icon">&#9742;</span><span data-i18n="simulation">Simulation</span></a>
+        <a href="terminal.html"><span class="nav-icon">&#9654;</span><span data-i18n="nav_terminal">Terminal</span></a>
+        <a href="knowledge.html"><span class="nav-icon">&#9733;</span><span>Base de connaissances</span></a>
+        <a href="entretiens.html"><span class="nav-icon">&#9998;</span><span>Entretiens</span></a>
+        <a href="quiz.html" class="active"><span class="nav-icon">&#9889;</span><span>Quiz</span></a>
+      </nav>
+    </aside>
+
+    <div class="main-content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <span class="page-title">&#9889; Quiz Technique</span>
+        </div>
+        <div class="topbar-right">
+          <div class="xp-pill" id="topXP" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border-radius:20px;padding:5px 16px;font-weight:700;font-size:.9rem;">⚡ 0 XP</div>
+        </div>
+      </header>
+
+      <div class="page-content">
+
+        <!-- ── SCREEN: START ── -->
+        <div id="screen-start" class="quiz-screen active">
+          <div class="quiz-start-hero">
+            <h2 style="font-size:1.6rem;margin-bottom:4px;">&#9889; Quiz Technique IT</h2>
+            <p style="color:var(--text-muted);margin-bottom:20px;">15 questions aléatoires · Chrono par question · Bonus vitesse</p>
+            <div class="quiz-xp-total"><span class="xp-icon">⚡</span><span id="totalXpDisplay">0</span> XP Total</div>
+            <div class="quiz-level-label" id="levelLabel">Niveau 1 — Débutant</div>
+            <div class="level-progress-wrap" style="max-width:360px;margin:0 auto 24px;">
+              <div class="level-info"><span id="lvlFrom">0 XP</span><span id="lvlTo">500 XP</span></div>
+              <div class="level-bar"><div class="level-fill" id="lvlBar" style="width:0%"></div></div>
+            </div>
+          </div>
+          <div class="quiz-stats-row">
+            <div class="qstat"><div class="qstat-val" id="statQuizzes">0</div><div class="qstat-lbl">Quiz joués</div></div>
+            <div class="qstat"><div class="qstat-val" id="statAccuracy">—</div><div class="qstat-lbl">Précision</div></div>
+            <div class="qstat"><div class="qstat-val" id="statBest">0</div><div class="qstat-lbl">Meilleur score</div></div>
+          </div>
+          <div style="text-align:center;margin-bottom:12px;color:var(--text-muted);font-size:.9rem;">Filtrer par catégorie (optionnel)</div>
+          <div class="quiz-cat-grid" id="catFilters">
+            <button class="cat-btn selected" data-cat="all" onclick="toggleCat(this)">Toutes</button>
+            <button class="cat-btn" data-cat="reseau" onclick="toggleCat(this)">&#127760; Réseau</button>
+            <button class="cat-btn" data-cat="windows" onclick="toggleCat(this)">&#128187; Windows</button>
+            <button class="cat-btn" data-cat="ad" onclick="toggleCat(this)">&#128100; AD / GPO</button>
+            <button class="cat-btn" data-cat="m365" onclick="toggleCat(this)">&#9729; M365</button>
+            <button class="cat-btn" data-cat="securite" onclick="toggleCat(this)">&#128274; Sécurité</button>
+            <button class="cat-btn" data-cat="hardware" onclick="toggleCat(this)">&#128736; Hardware</button>
+          </div>
+          <div style="text-align:center;">
+            <button class="btn btn-primary btn-start-quiz" onclick="startQuiz()">&#9654; Démarrer le Quiz</button>
+          </div>
+          <div style="text-align:center;margin-top:32px;color:var(--text-muted);font-size:.8rem;">
+            ⚡ Répondre vite = bonus XP · Questions à choix simple et multiple
+          </div>
+        </div>
+
+        <!-- ── SCREEN: QUESTION ── -->
+        <div id="screen-question" class="quiz-screen">
+          <div class="quiz-header">
+            <div class="quiz-progress-info">Question <span id="qNum">1</span> / <span id="qTotal">15</span></div>
+            <div class="quiz-xp-live">⚡ <span id="liveXP">0</span> XP cette session</div>
+          </div>
+          <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="qProgressFill" style="width:0%"></div></div>
+          <div class="timer-wrap">
+            <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+            <div class="timer-count" id="timerCount">30</div>
+          </div>
+          <div class="question-card">
+            <div class="question-meta" id="questionMeta"></div>
+            <div class="question-text" id="questionText"></div>
+            <div class="question-hint" id="questionHint"></div>
+          </div>
+          <div class="options-grid" id="optionsGrid"></div>
+          <div class="submit-row" id="submitRow" style="display:none;">
+            <button class="btn btn-primary" id="submitBtn" onclick="submitAnswer()">Valider &#10003;</button>
+          </div>
+        </div>
+
+        <!-- ── SCREEN: RESULTS ── -->
+        <div id="screen-result" class="quiz-screen">
+          <div class="result-hero">
+            <h2 style="margin-bottom:16px;">Quiz terminé !</h2>
+            <div class="result-score-circle">
+              <div class="rsc-num" id="rscNum">0/15</div>
+              <div class="rsc-lbl">correct</div>
+            </div>
+            <div style="color:var(--text-muted);margin-bottom:4px;">XP gagnés cette session</div>
+            <div class="result-xp-earned" id="resultXpEarned">+0 XP</div>
+            <div style="font-size:.9rem;color:var(--text-muted);">Total : <strong id="resultXpTotal" style="color:#7c3aed;">0 XP</strong></div>
+            <div class="level-progress-wrap" style="max-width:400px;margin:20px auto 0;">
+              <div class="level-info"><span id="rLvlLabel">Niveau</span><span id="rLvlNext"></span></div>
+              <div class="level-bar"><div class="level-fill" id="rLvlBar" style="width:0%"></div></div>
+            </div>
+          </div>
+          <div id="result-breakdown" class="result-breakdown"></div>
+          <div class="result-actions">
+            <button class="btn btn-primary" onclick="startQuiz()">&#8635; Rejouer</button>
+            <button class="btn btn-outline" onclick="showScreen('start')">&#8592; Menu</button>
+          </div>
+        </div>
+
+      </div><!-- page-content -->
+    </div><!-- main-content -->
+  </div><!-- app-container -->
+
+  <!-- Toast + XP float -->
+  <div class="feedback-toast" id="feedbackToast"></div>
+  <div class="xp-float" id="xpFloat"></div>
+
+  <script src="js/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+  // ── QUESTIONS DATABASE ──────────────────────────────────────────────────
+  const ALL_QUESTIONS = [
+    // Réseau
+    { q:"Quel est le port par défaut de HTTPS ?", type:'single', diff:'n1', cat:'reseau', catLabel:'Réseau',
+      opts:["80","443","8080","22"], correct:[1], xp:15, time:30 },
+    { q:"Quels protocoles opèrent sur la couche Transport (couche 4) du modèle OSI ?", type:'multiple', diff:'n1', cat:'reseau', catLabel:'Réseau',
+      opts:["TCP","HTTP","UDP","SMTP"], correct:[0,2], xp:15, time:45 },
+    { q:"À quoi sert le protocole DHCP ?", type:'single', diff:'n1', cat:'reseau', catLabel:'Réseau',
+      opts:["Résoudre les noms de domaine en IP","Attribuer automatiquement les adresses IP","Sécuriser les connexions VPN","Filtrer le trafic réseau"], correct:[1], xp:15, time:30 },
+    { q:"Quel outil en ligne de commande permet de tracer la route des paquets vers une destination ?", type:'single', diff:'n2', cat:'reseau', catLabel:'Réseau',
+      opts:["ping","nslookup","tracert / traceroute","netstat"], correct:[2], xp:25, time:30 },
+    { q:"Sur quels ports fonctionne le DNS ?", type:'multiple', diff:'n2', cat:'reseau', catLabel:'Réseau',
+      opts:["Port 53 TCP","Port 80 TCP","Port 53 UDP","Port 443 TCP"], correct:[0,2], xp:25, time:45 },
+    { q:"Quel est le port par défaut de SSH ?", type:'single', diff:'n2', cat:'reseau', catLabel:'Réseau',
+      opts:["21","22","23","25"], correct:[1], xp:25, time:30 },
+    { q:"Que signifie VLAN ?", type:'single', diff:'n2', cat:'reseau', catLabel:'Réseau',
+      opts:["Virtual Local Area Network","Very Large Area Network","Virtual LAN Access Node","Verified Local Area Network"], correct:[0], xp:25, time:30 },
+    { q:"Quelle commande interroge un serveur DNS pour résoudre un nom ?", type:'single', diff:'n2', cat:'reseau', catLabel:'Réseau',
+      opts:["ipconfig","netstat","nslookup","arp"], correct:[2], xp:40, time:30 },
+
+    // Windows
+    { q:"Quelle commande Windows vérifie et répare les fichiers système corrompus ?", type:'single', diff:'n1', cat:'windows', catLabel:'Windows',
+      opts:["chkdsk","sfc /scannow","dism /cleanup","scandisk"], correct:[1], xp:15, time:30 },
+    { q:"Quel raccourci clavier ouvre directement le Gestionnaire des tâches ?", type:'single', diff:'n1', cat:'windows', catLabel:'Windows',
+      opts:["Ctrl+Alt+Del","Ctrl+Shift+Esc","Win+R","Alt+F4"], correct:[1], xp:15, time:30 },
+    { q:"Quelle commande force la mise à jour immédiate des stratégies de groupe ?", type:'single', diff:'n2', cat:'windows', catLabel:'Windows',
+      opts:["gpedit.msc","gpmc.msc","gpupdate /force","gpresult /r"], correct:[2], xp:25, time:30 },
+    { q:"Où consulter les journaux d'événements Windows ?", type:'single', diff:'n2', cat:'windows', catLabel:'Windows',
+      opts:["Gestionnaire de périphériques","Observateur d'événements","Moniteur de ressources","Registre Windows (regedit)"], correct:[1], xp:25, time:30 },
+    { q:"Quelle commande DISM répare l'image Windows en téléchargeant les fichiers manquants ?", type:'single', diff:'n2', cat:'windows', catLabel:'Windows',
+      opts:["DISM /Online /Cleanup-Image /CheckHealth","DISM /Online /Cleanup-Image /RestoreHealth","DISM /Repair /All","DISM /Fix /Windows"], correct:[1], xp:40, time:30 },
+
+    // AD / GPO
+    { q:"Que signifie AD DS ?", type:'single', diff:'n1', cat:'ad', catLabel:'AD / GPO',
+      opts:["Advanced Directory Data Service","Active Directory Domain Services","Automated Domain Deployment System","Active Data Distribution Service"], correct:[1], xp:15, time:30 },
+    { q:"Que signifie GPO ?", type:'single', diff:'n1', cat:'ad', catLabel:'AD / GPO',
+      opts:["Global Proxy Object","Group Policy Object","General Protocol Options","Group Permission Override"], correct:[1], xp:15, time:30 },
+    { q:"Quels types d'objets peut-on créer dans l'Active Directory ?", type:'multiple', diff:'n2', cat:'ad', catLabel:'AD / GPO',
+      opts:["Utilisateurs","Ordinateurs","Groupes","Unités d'organisation (OU)"], correct:[0,1,2,3], xp:25, time:45 },
+    { q:"Quel outil graphique permet de gérer les GPO dans un domaine Windows ?", type:'single', diff:'n2', cat:'ad', catLabel:'AD / GPO',
+      opts:["Active Directory Users and Computers","Group Policy Management Console (GPMC)","Local Security Policy","Registry Editor"], correct:[1], xp:25, time:30 },
+    { q:"Quel protocole d'authentification est utilisé par défaut dans un domaine Active Directory ?", type:'single', diff:'n2', cat:'ad', catLabel:'AD / GPO',
+      opts:["NTLM","Kerberos","LDAP","RADIUS"], correct:[1], xp:40, time:30 },
+
+    // M365
+    { q:"Que signifie MFA ?", type:'single', diff:'n1', cat:'m365', catLabel:'M365',
+      opts:["Multi-Factor Authentication","Managed File Access","Microsoft Factor Auth","Multi-Function Application"], correct:[0], xp:15, time:30 },
+    { q:"Quel portail web permet d'administrer Microsoft 365 ?", type:'single', diff:'n2', cat:'m365', catLabel:'M365',
+      opts:["portal.azure.com","admin.microsoft.com","outlook.office.com","teams.microsoft.com"], correct:[1], xp:25, time:30 },
+    { q:"Quels services sont inclus dans Microsoft 365 Business ?", type:'multiple', diff:'n2', cat:'m365', catLabel:'M365',
+      opts:["Exchange Online","SharePoint Online","Microsoft Teams","Azure Virtual Machines"], correct:[0,1,2], xp:25, time:45 },
+    { q:"Quelle commande PowerShell permet de se connecter à Exchange Online ?", type:'single', diff:'n2', cat:'m365', catLabel:'M365',
+      opts:["Connect-MsolService","Connect-AzureAD","Connect-ExchangeOnline","Import-Module Exchange"], correct:[2], xp:40, time:30 },
+    { q:"Quel service gère les identités dans l'environnement Microsoft 365 ?", type:'single', diff:'n2', cat:'m365', catLabel:'M365',
+      opts:["Active Directory local uniquement","Azure AD / Microsoft Entra ID","ADFS uniquement","Okta"], correct:[1], xp:25, time:30 },
+
+    // Sécurité
+    { q:"Qu'est-ce qu'une attaque par phishing ?", type:'single', diff:'n1', cat:'securite', catLabel:'Sécurité',
+      opts:["Une attaque de déni de service (DDoS)","Une tentative de voler des informations via faux e-mails ou sites","Un virus qui chiffre les fichiers","Une attaque sur le réseau Wi-Fi"], correct:[1], xp:15, time:30 },
+    { q:"Qu'est-ce qu'un ransomware ?", type:'single', diff:'n1', cat:'securite', catLabel:'Sécurité',
+      opts:["Un logiciel de sauvegarde automatique","Un malware qui chiffre les données et demande une rançon","Un outil d'analyse réseau","Un antivirus gratuit"], correct:[1], xp:15, time:30 },
+    { q:"Quels éléments constituent un mot de passe robuste ?", type:'multiple', diff:'n1', cat:'securite', catLabel:'Sécurité',
+      opts:["Minimum 12 caractères","Majuscules et minuscules","Chiffres et symboles spéciaux","Le prénom de l'utilisateur"], correct:[0,1,2], xp:15, time:45 },
+    { q:"Que signifie le principe du moindre privilège (Least Privilege) ?", type:'single', diff:'n2', cat:'securite', catLabel:'Sécurité',
+      opts:["Donner tous les droits aux administrateurs","N'accorder que les permissions strictement nécessaires","Bloquer tous les accès par défaut","Partager les comptes entre collègues"], correct:[1], xp:40, time:30 },
+    { q:"Que désigne le modèle de sécurité Zero Trust ?", type:'single', diff:'n2', cat:'securite', catLabel:'Sécurité',
+      opts:["Faire confiance à tout le trafic interne","Ne jamais faire confiance, toujours vérifier chaque accès","Bloquer tout le trafic externe uniquement","Un modèle de chiffrement symétrique"], correct:[1], xp:40, time:30 },
+
+    // Hardware
+    { q:"Que signifie POST au démarrage d'un ordinateur ?", type:'single', diff:'n1', cat:'hardware', catLabel:'Hardware',
+      opts:["Power On Self Test","Primary Operating System Test","Peripheral Output System Test","Pre-OS Setup Tool"], correct:[0], xp:15, time:30 },
+    { q:"Qu'est-ce que le RAID 1 ?", type:'single', diff:'n1', cat:'hardware', catLabel:'Hardware',
+      opts:["Agrégation de disques pour la performance","Miroir — copie identique sur deux disques","Répartition des données sur plusieurs disques","Sauvegarde sur bande magnétique"], correct:[1], xp:15, time:30 },
+    { q:"Quels composants peuvent provoquer un écran bleu (BSOD) ?", type:'multiple', diff:'n2', cat:'hardware', catLabel:'Hardware',
+      opts:["RAM défectueuse","Pilotes (drivers) incompatibles ou corrompus","Disque dur défaillant","Souris débranchée"], correct:[0,1,2], xp:25, time:45 },
+  ];
+
+  // ── PERSISTENT STATE ────────────────────────────────────────────────────
+  const LS_QUIZ = 'it_quiz_state';
+  function loadState() {
+    try { const s = localStorage.getItem(LS_QUIZ); if(s) return JSON.parse(s); } catch(e){}
+    return { totalXP:0, quizzes:0, totalAnswered:0, totalCorrect:0, bestScore:0 };
+  }
+  function saveState() { try { localStorage.setItem(LS_QUIZ, JSON.stringify(state)); } catch(e){} }
+  let state = loadState();
+
+  // ── QUIZ STATE ───────────────────────────────────────────────────────────
+  let questions = [];
+  let current = 0;
+  let sessionXP = 0;
+  let sessionCorrect = 0;
+  let sessionResults = [];
+  let timerInterval = null;
+  let timeLeft = 0;
+  let timeTotal = 0;
+  let selectedOpts = new Set();
+  let answered = false;
+  let selectedCat = 'all';
+
+  // ── SCREEN MANAGEMENT ───────────────────────────────────────────────────
+  function showScreen(name) {
+    document.querySelectorAll('.quiz-screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    if (name === 'start') refreshStartScreen();
+  }
+
+  function refreshStartScreen() {
+    const lvl = getLevel(state.totalXP);
+    const nextLvl = LEVELS[LEVELS.indexOf(lvl) + 1];
+    document.getElementById('totalXpDisplay').textContent = state.totalXP.toLocaleString('fr');
+    document.getElementById('levelLabel').textContent = `Niveau ${LEVELS.indexOf(lvl)+1} — ${lvl.name}`;
+    document.getElementById('topXP').textContent = `⚡ ${state.totalXP.toLocaleString('fr')} XP`;
+    document.getElementById('statQuizzes').textContent = state.quizzes;
+    document.getElementById('statBest').textContent = state.bestScore;
+    document.getElementById('statAccuracy').textContent = state.totalAnswered > 0
+      ? Math.round(state.totalCorrect / state.totalAnswered * 100) + '%' : '—';
+
+    const from = lvl.min;
+    const to = nextLvl ? nextLvl.min : lvl.min + 1;
+    const pct = nextLvl ? Math.min(100, Math.round((state.totalXP - from) / (to - from) * 100)) : 100;
+    document.getElementById('lvlFrom').textContent = from.toLocaleString('fr') + ' XP';
+    document.getElementById('lvlTo').textContent = nextLvl ? to.toLocaleString('fr') + ' XP' : '★ MAX';
+    document.getElementById('lvlBar').style.width = pct + '%';
+  }
+
+  // ── CATEGORY FILTER ─────────────────────────────────────────────────────
+  function toggleCat(btn) {
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedCat = btn.dataset.cat;
+  }
+
+  // ── START QUIZ ──────────────────────────────────────────────────────────
+  function startQuiz() {
+    let pool = selectedCat === 'all' ? ALL_QUESTIONS : ALL_QUESTIONS.filter(q => q.cat === selectedCat);
+    if (pool.length < 5) pool = ALL_QUESTIONS;
+    questions = shuffle([...pool]).slice(0, 15);
+    current = 0;
+    sessionXP = 0;
+    sessionCorrect = 0;
+    sessionResults = [];
+    showScreen('question');
+    showQuestion(0);
+  }
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // ── SHOW QUESTION ────────────────────────────────────────────────────────
+  function showQuestion(idx) {
+    answered = false;
+    selectedOpts = new Set();
+    const q = questions[idx];
+    const total = questions.length;
+
+    document.getElementById('qNum').textContent = idx + 1;
+    document.getElementById('qTotal').textContent = total;
+    document.getElementById('qProgressFill').style.width = (idx / total * 100) + '%';
+    document.getElementById('liveXP').textContent = sessionXP.toLocaleString('fr');
+
+    // Meta badges
+    document.getElementById('questionMeta').innerHTML =
+      `<span class="badge-cat">${q.catLabel}</span>` +
+      `<span class="badge-diff ${q.diff}">${q.diff.toUpperCase()}</span>` +
+      `<span class="badge-type">${q.type === 'multiple' ? '&#9635; Plusieurs réponses' : '&#9675; Réponse unique'}</span>`;
+
+    document.getElementById('questionText').textContent = q.q;
+    document.getElementById('questionHint').textContent = q.type === 'multiple'
+      ? '&#9432; Sélectionnez toutes les réponses correctes puis validez.' : '';
+
+    // Options
+    const letters = ['A','B','C','D','E'];
+    document.getElementById('optionsGrid').innerHTML = q.opts.map((opt, i) =>
+      `<button class="option-btn" id="opt${i}" onclick="selectOpt(${i})">
+        <span class="opt-letter">${letters[i]}</span>
+        <span>${opt}</span>
+      </button>`
+    ).join('');
+
+    document.getElementById('submitRow').style.display = q.type === 'multiple' ? 'flex' : 'none';
+
+    startTimer(q.time);
+  }
+
+  // ── TIMER ────────────────────────────────────────────────────────────────
+  function startTimer(seconds) {
+    clearInterval(timerInterval);
+    timeTotal = seconds;
+    timeLeft = seconds;
+    updateTimerUI();
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updateTimerUI();
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        if (!answered) autoSubmit();
+      }
+    }, 1000);
+  }
+
+  function updateTimerUI() {
+    const pct = timeLeft / timeTotal * 100;
+    const fill = document.getElementById('timerFill');
+    const count = document.getElementById('timerCount');
+    fill.style.width = pct + '%';
+    fill.className = 'timer-fill' + (pct < 25 ? ' danger' : pct < 50 ? ' warn' : '');
+    count.textContent = timeLeft;
+    count.className = 'timer-count' + (pct < 25 ? ' danger' : '');
+  }
+
+  // ── SELECT OPTION ────────────────────────────────────────────────────────
+  function selectOpt(i) {
+    if (answered) return;
+    const q = questions[current];
+    if (q.type === 'single') {
+      selectedOpts = new Set([i]);
+      document.querySelectorAll('.option-btn').forEach((b,idx) => {
+        b.classList.toggle('selected', idx === i);
+      });
+      submitAnswer();
+    } else {
+      if (selectedOpts.has(i)) {
+        selectedOpts.delete(i);
+        document.getElementById('opt' + i).classList.remove('selected');
+      } else {
+        selectedOpts.add(i);
+        document.getElementById('opt' + i).classList.add('selected');
+      }
+      document.getElementById('submitBtn').disabled = selectedOpts.size === 0;
+    }
+  }
+
+  // ── SUBMIT ────────────────────────────────────────────────────────────────
+  function autoSubmit() {
+    answered = true;
+    revealAnswer(false, 0);
+  }
+
+  function submitAnswer() {
+    if (answered) return;
+    answered = true;
+    clearInterval(timerInterval);
+
+    const q = questions[current];
+    const correctSet = new Set(q.correct);
+    const isCorrect = selectedOpts.size === correctSet.size &&
+      [...selectedOpts].every(i => correctSet.has(i));
+
+    const timeUsed = timeTotal - timeLeft;
+    const ratio = timeUsed / timeTotal;
+    let mult = ratio < 0.33 ? 2 : ratio < 0.66 ? 1.5 : 1;
+    const xpEarned = isCorrect ? Math.round(q.xp * mult) : 0;
+
+    revealAnswer(isCorrect, xpEarned);
+  }
+
+  function revealAnswer(isCorrect, xpEarned) {
+    const q = questions[current];
+    const correctSet = new Set(q.correct);
+
+    document.querySelectorAll('.option-btn').forEach((btn, i) => {
+      btn.disabled = true;
+      if (correctSet.has(i)) btn.classList.add('correct');
+      else if (selectedOpts.has(i) && !correctSet.has(i)) btn.classList.add('wrong');
+    });
+
+    if (isCorrect) {
+      sessionCorrect++;
+      sessionXP += xpEarned;
+      showFeedback(true, xpEarned);
+    } else {
+      showFeedback(false, 0);
+    }
+
+    sessionResults.push({ q: q.q, isCorrect, xpEarned, diff: q.diff });
+
+    setTimeout(() => {
+      current++;
+      if (current < questions.length) showQuestion(current);
+      else showResults();
+    }, 1500);
+  }
+
+  // ── FEEDBACK ─────────────────────────────────────────────────────────────
+  function showFeedback(correct, xp) {
+    const toast = document.getElementById('feedbackToast');
+    toast.className = 'feedback-toast ' + (correct ? 'correct-fb' : 'wrong-fb');
+    toast.textContent = correct ? `✓ Correct !  +${xp} XP` : '✗ Incorrect';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1300);
+
+    if (correct && xp > 0) {
+      const el = document.getElementById('xpFloat');
+      el.textContent = '+' + xp + ' XP ⚡';
+      el.style.left = '50%';
+      el.style.top = '60%';
+      el.style.transform = 'translateX(-50%)';
+      el.className = 'xp-float';
+      void el.offsetWidth;
+      el.classList.add('show');
+      setTimeout(() => { el.className = 'xp-float'; }, 900);
+    }
+  }
+
+  // ── RESULTS ───────────────────────────────────────────────────────────────
+  function showResults() {
+    clearInterval(timerInterval);
+    const total = questions.length;
+
+    // Update persistent state
+    state.totalXP += sessionXP;
+    state.quizzes++;
+    state.totalAnswered += total;
+    state.totalCorrect += sessionCorrect;
+    if (sessionCorrect > state.bestScore) state.bestScore = sessionCorrect;
+    saveState();
+    if (typeof Auth !== 'undefined' && Auth._session) {
+      Auth.syncXP(Auth._session.user.id);
+    }
+
+    showScreen('result');
+
+    document.getElementById('rscNum').textContent = sessionCorrect + '/' + total;
+    document.getElementById('resultXpEarned').textContent = '+' + sessionXP.toLocaleString('fr') + ' XP';
+    document.getElementById('resultXpTotal').textContent = state.totalXP.toLocaleString('fr') + ' XP';
+    document.getElementById('topXP').textContent = `⚡ ${state.totalXP.toLocaleString('fr')} XP`;
+
+    const lvl = getLevel(state.totalXP);
+    const nextLvl = LEVELS[LEVELS.indexOf(lvl) + 1];
+    const pct = nextLvl ? Math.min(100, Math.round((state.totalXP - lvl.min) / (nextLvl.min - lvl.min) * 100)) : 100;
+    document.getElementById('rLvlLabel').textContent = `Niveau ${LEVELS.indexOf(lvl)+1} — ${lvl.name}`;
+    document.getElementById('rLvlNext').textContent = nextLvl ? `→ ${nextLvl.name} (${nextLvl.min.toLocaleString('fr')} XP)` : '★ Niveau maximum';
+    setTimeout(() => { document.getElementById('rLvlBar').style.width = pct + '%'; }, 200);
+
+    // Breakdown
+    const bd = document.getElementById('result-breakdown');
+    bd.innerHTML = sessionResults.map(r =>
+      `<div class="rb-row ${r.isCorrect ? 'correct-row' : 'wrong-row'}">
+        <span style="flex:1;font-size:.82rem;">${r.q}</span>
+        <span class="rb-xp">${r.isCorrect ? '+'+r.xpEarned+' XP' : '0 XP'}</span>
+      </div>`
+    ).join('');
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  refreshStartScreen();
+  if (typeof App !== 'undefined') App.init();
+  </script>
+</body>
+</html>

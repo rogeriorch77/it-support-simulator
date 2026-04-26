@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Support Simulator — Base de connaissances</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .knowledge-card { cursor: pointer; user-select: none; transition: all 0.2s ease; }
+    .knowledge-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .knowledge-card.kb-active { border-color: var(--accent); background: rgba(59,130,246,0.1); transform: translateY(-2px); box-shadow: 0 4px 20px rgba(59,130,246,0.15); }
+
+    #kbPanel { display: none; margin-top: 20px; }
+    #kbPanel.visible { display: block; }
+
+    .kb-section { display: none; }
+    .kb-section.visible { display: block; }
+
+    .kb-section-header { display: flex; align-items: center; gap: 10px; padding: 14px 0; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .kb-section-icon { font-size: 22px; }
+    .kb-section-title { font-size: 16px; font-weight: 700; }
+    .kb-section-count { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+
+    .kb-fiche { border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 8px; overflow: hidden; transition: border-color 0.15s; }
+    .kb-fiche:hover { border-color: rgba(88,166,255,0.35); }
+    .kb-fiche.hidden { display: none; }
+
+    .kb-fiche-header { display: flex; align-items: center; justify-content: space-between; padding: 11px 16px; cursor: pointer; background: var(--bg-card); transition: background 0.15s; gap: 10px; }
+    .kb-fiche-header:hover { filter: brightness(1.1); }
+
+    .kb-fiche-body { display: none; padding: 16px; border-top: 1px solid var(--border); font-size: 13px; line-height: 1.75; }
+    .kb-fiche-body.open { display: block; }
+
+    .kb-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; margin-right: 6px; letter-spacing: 0.05em; flex-shrink: 0; }
+    .kb-badge.n1 { background: rgba(59,130,246,0.2); color: #58a6ff; }
+    .kb-badge.n2 { background: rgba(168,85,247,0.2); color: #a855f7; }
+
+    .kb-arrow { font-size: 11px; color: var(--text-muted); transition: transform 0.2s; flex-shrink: 0; }
+    .kb-arrow.open { transform: rotate(180deg); }
+
+    .kb-fiche-title { font-size: 13px; font-weight: 600; flex: 1; }
+
+    .kb-symptom { background: rgba(210,153,34,0.08); border-left: 3px solid #d29922; padding: 8px 12px; border-radius: 0 4px 4px 0; margin-bottom: 12px; color: var(--text-secondary); }
+    .kb-symptom strong { color: #d29922; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 3px; }
+
+    .kb-steps-label { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin: 0 0 6px; }
+    .kb-steps ol { margin: 0; padding-left: 20px; }
+    .kb-steps li { margin-bottom: 5px; }
+
+    .kb-cmd { display: inline-block; font-family: 'Cascadia Code','Consolas',monospace; font-size: 11px; background: #0d1117; color: #79c0ff; padding: 1px 7px; border-radius: 4px; border: 1px solid #30363d; cursor: pointer; margin: 1px 2px; transition: all 0.15s; vertical-align: middle; }
+    .kb-cmd:hover { color: #58a6ff; border-color: #58a6ff; }
+    .kb-cmd.copied { color: #3fb950 !important; border-color: #3fb950 !important; }
+
+    .kb-note { background: rgba(59,130,246,0.07); border-left: 3px solid rgba(88,166,255,0.4); padding: 7px 12px; border-radius: 0 4px 4px 0; font-size: 12px; margin-top: 12px; color: var(--text-muted); }
+
+    .kb-cmds-row { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+    .kb-cmds-row p { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin: 0 0 6px; }
+
+    .kb-close-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin-top: 16px; padding: 9px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; font-size: 12px; color: var(--text-muted); transition: all 0.15s; }
+    .kb-close-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+
+    .osi-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 4px; }
+    .osi-table th { text-align: left; padding: 5px 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    .osi-table td { padding: 5px 10px; border-bottom: 1px solid rgba(48,54,61,0.5); vertical-align: top; }
+    .osi-table tr:last-child td { border-bottom: none; }
+
+    .search-active-note { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; padding: 6px 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); }
+  </style>
+</head>
+<body>
+  <div class="sidebar-overlay"></div>
+  <div class="app-container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">IT</div>
+          <div>
+            <span class="logo-text">IT Support</span>
+            <span class="logo-sub">Simulator v1.0</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html"><span class="nav-icon">&#9632;</span><span>Tableau de bord</span></a>
+        <a href="tickets.html"><span class="nav-icon">&#9993;</span><span>Tickets</span></a>
+        <a href="simulation.html"><span class="nav-icon">&#9742;</span><span>Simulation</span></a>
+        <a href="terminal.html"><span class="nav-icon">&#9654;</span><span>Terminal</span></a>
+        <a href="knowledge.html" class="active"><span class="nav-icon">&#9733;</span><span>Base de connaissances</span></a>
+        <a href="entretiens.html"><span class="nav-icon">&#9998;</span><span>Entretiens</span></a>
+        <a href="quiz.html"><span class="nav-icon">&#9889;</span><span>Quiz</span></a>
+      </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger">&#9776;</button>
+          <div class="search-box">
+            <span class="search-icon">&#128269;</span>
+            <input type="text" id="kbSearch" placeholder="Rechercher dans la base de connaissances...">
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="user-info">
+            <div class="user-avatar">U</div>
+            <span class="user-name">User</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="page-header">
+          <h1>Base de connaissances</h1>
+          <p>Procédures de dépannage N1/N2 — cliquez sur une catégorie pour explorer les fiches</p>
+        </div>
+
+        <!-- CATEGORY CARDS -->
+        <div class="knowledge-grid" id="kbGrid">
+
+          <div class="knowledge-card" data-cat="windows">
+            <div class="card-icon">&#128187;</div>
+            <h3>Windows 10/11</h3>
+            <p>SFC, DISM, Windows Update, RDP, performance, profils utilisateurs.</p>
+          </div>
+
+          <div class="knowledge-card" data-cat="ad">
+            <div class="card-icon">&#128101;</div>
+            <h3>Active Directory &amp; GPO</h3>
+            <p>Comptes verrouillés, mots de passe, GPO, dsquery, politique de comptes.</p>
+          </div>
+
+          <div class="knowledge-card" data-cat="server">
+            <div class="card-icon">&#128424;</div>
+            <h3>Windows Server</h3>
+            <p>DHCP, partages réseau, disque critique, services, DNS serveur.</p>
+          </div>
+
+          <div class="knowledge-card" data-cat="m365">
+            <div class="card-icon">&#9729;</div>
+            <h3>Microsoft 365</h3>
+            <p>Outlook, Teams, OneDrive, licences, Exchange Online, SharePoint.</p>
+          </div>
+
+          <div class="knowledge-card" data-cat="azure">
+            <div class="card-icon">&#9889;</div>
+            <h3>Azure &amp; Sécurité</h3>
+            <p>Azure AD, MFA, Intune, Conditional Access, gestion des incidents.</p>
+          </div>
+
+          <div class="knowledge-card" data-cat="reseau">
+            <div class="card-icon">&#127760;</div>
+            <h3>Réseau (TCP/IP, DNS, DHCP)</h3>
+            <p>APIPA, DNS, VPN, Wi-Fi, commandes CMD, modèle OSI.</p>
+          </div>
+
+        </div>
+
+        <!-- SEARCH RESULTS NOTE -->
+        <div id="searchNote" class="search-active-note" style="display:none;margin-top:16px;"></div>
+
+        <!-- DETAIL PANEL -->
+        <div id="kbPanel">
+
+          <!-- ==================== WINDOWS ==================== -->
+          <div class="kb-section" data-section="windows">
+            <div class="kb-section-header">
+              <span class="kb-section-icon">&#128187;</span>
+              <span class="kb-section-title">Windows 10/11</span>
+              <span class="kb-section-count">6 fiches</span>
+            </div>
+
+            <!-- Fiche 1 -->
+            <div class="kb-fiche" data-keywords="sfc dism fichiers système corrompus réparation windows intégrité">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">Réparation des fichiers système (SFC + DISM)</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Erreurs aléatoires Windows, crashs d'applications, messages "fichier manquant", lenteurs inexpliquées après une mise à jour.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Ouvrir CMD en tant qu'administrateur (clic droit → Exécuter en tant qu'admin).</li>
+                  <li>Lancer l'analyse des fichiers système : <code class="kb-cmd">sfc /scannow</code> — attendre la fin (peut prendre 5–15 min).</li>
+                  <li>Si SFC signale des erreurs qu'il ne peut pas corriger, réparer l'image Windows : <code class="kb-cmd">dism /online /cleanup-image /scanhealth</code> puis <code class="kb-cmd">dism /online /cleanup-image /restorehealth</code></li>
+                  <li>Relancer <code class="kb-cmd">sfc /scannow</code> une seconde fois après DISM.</li>
+                  <li>Redémarrer le poste et vérifier que les erreurs ont disparu.</li>
+                </ol></div>
+                <div class="kb-note">💡 DISM nécessite une connexion Internet ou un ISO Windows pour télécharger les fichiers de réparation. Sur un réseau d'entreprise, vérifier l'accès à Windows Update avant de lancer.</div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">sfc /scannow</code>
+                  <code class="kb-cmd">dism /online /cleanup-image /scanhealth</code>
+                  <code class="kb-cmd">dism /online /cleanup-image /restorehealth</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 2 -->
+            <div class="kb-fiche" data-keywords="windows update bloqué wuauserv bits service mise à jour 0x80070422">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">Windows Update bloqué ou en échec</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Mises à jour bloquées à X%, erreur 0x80070422, erreur 0x80248015, service Windows Update signalé comme arrêté.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Vérifier l'état des services nécessaires : <code class="kb-cmd">sc query wuauserv</code> et <code class="kb-cmd">sc query bits</code></li>
+                  <li>Si STOPPED, démarrer les services : <code class="kb-cmd">sc start wuauserv</code> puis <code class="kb-cmd">sc start bits</code></li>
+                  <li>Vérifier que les services démarrent bien en automatique : <code class="kb-cmd">sc config wuauserv start=auto</code></li>
+                  <li>Si le problème persiste, exécuter l'outil de dépannage Windows Update (Paramètres → Mise à jour → Dépanner).</li>
+                  <li>En dernier recours, vider le cache Windows Update : arrêter wuauserv, supprimer <code>C:\Windows\SoftwareDistribution\Download</code>, redémarrer le service.</li>
+                </ol></div>
+                <div class="kb-note">💡 Le service BITS (Background Intelligent Transfer Service) est indispensable au téléchargement des mises à jour. Si BITS refuse de démarrer, vérifier l'intégrité avec SFC.</div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">sc query wuauserv</code>
+                  <code class="kb-cmd">sc query bits</code>
+                  <code class="kb-cmd">sc start wuauserv</code>
+                  <code class="kb-cmd">sc start bits</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 3 -->
+            <div class="kb-fiche" data-keywords="pc lent cpu mémoire ram saturé tasklist taskkill performance processus">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">PC lent — CPU ou mémoire saturés</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Poste très lent, temps de réponse élevé, ventilateur qui tourne fort, Gestionnaire des tâches montre CPU ou RAM à 90–100%.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Identifier les processus consommateurs : <code class="kb-cmd">tasklist</code> — repérer les noms avec mémoire élevée.</li>
+                  <li>Vérifier les infos système (RAM installée, CPU) : <code class="kb-cmd">systeminfo</code></li>
+                  <li>Si un processus suspect monopolise les ressources (ex: MsMpEng.exe, SearchIndexer.exe), l'arrêter en force : <code class="kb-cmd">taskkill /im MsMpEng.exe /f</code></li>
+                  <li>Vérifier les connexions réseau ouvertes (malware possible) : <code class="kb-cmd">netstat -b</code></li>
+                  <li>Désactiver les programmes au démarrage inutiles via <code class="kb-cmd">msconfig</code> → onglet Démarrage.</li>
+                  <li>Vérifier les erreurs disque : <code class="kb-cmd">chkdsk C: /f</code></li>
+                </ol></div>
+                <div class="kb-note">💡 MsMpEng.exe est l'antivirus Windows Defender. Une analyse complète peut saturer le CPU. Planifier les analyses hors heures de bureau dans les paramètres Sécurité Windows.</div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">tasklist</code>
+                  <code class="kb-cmd">taskkill /im process.exe /f</code>
+                  <code class="kb-cmd">systeminfo</code>
+                  <code class="kb-cmd">netstat -b</code>
+                  <code class="kb-cmd">msconfig</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 4 -->
+            <div class="kb-fiche" data-keywords="profil utilisateur corrompu temporaire bureau vide paramètres perdus">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">Profil utilisateur corrompu</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Utilisateur connecté sur un "profil temporaire", bureau vide, favoris et paramètres perdus, message "Le service profil utilisateur n'a pas pu ouvrir la session".</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Se connecter en tant qu'administrateur local sur le poste.</li>
+                  <li>Aller dans <strong>Panneau de configuration → Système → Paramètres système avancés → Profils des utilisateurs</strong>.</li>
+                  <li>Identifier le profil défaillant (marqué "Profil temporaire") et noter le chemin <code>C:\Users\NomUtilisateur</code>.</li>
+                  <li>Créer un nouveau profil en ouvrant une session avec un compte de test, puis déconnecter.</li>
+                  <li>Copier les données importantes (Bureau, Documents, Favoris) depuis l'ancien profil vers le nouveau.</li>
+                  <li>Supprimer l'entrée du profil corrompu dans le Registre : <code>HKCU\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList</code>.</li>
+                </ol></div>
+                <div class="kb-note">💡 Avant de supprimer le profil, sauvegarder les données utilisateur. Cette procédure est irréversible sans sauvegarde préalable.</div>
+              </div>
+            </div>
+
+            <!-- Fiche 5 -->
+            <div class="kb-fiche" data-keywords="bsod écran bleu stop code diagnostic eventvwr journal">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">BSOD (Écran bleu) — diagnostic</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Écran bleu avec code d'erreur (ex: IRQL_NOT_LESS_OR_EQUAL, MEMORY_MANAGEMENT), redémarrage automatique, instabilité système.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Noter le code d'arrêt affiché (ou le photographier). Codes fréquents : <em>CRITICAL_PROCESS_DIED</em> (service), <em>PAGE_FAULT_IN_NONPAGED_AREA</em> (RAM/drivers).</li>
+                  <li>Consulter les journaux d'événements pour identifier l'heure et la cause : <code class="kb-cmd">eventvwr</code> → Windows → Application et services → Système.</li>
+                  <li>Vérifier l'intégrité des fichiers système : <code class="kb-cmd">sfc /scannow</code></li>
+                  <li>Si BSOD récent après mise à jour de driver, désinstaller le driver via Gestionnaire de périphériques : <code class="kb-cmd">devmgmt.msc</code></li>
+                  <li>Vérifier la RAM (outil Diagnostic de mémoire Windows : <code>mdsched.exe</code>).</li>
+                  <li>Si le problème persiste, escalader en N2/N3 avec le fichier dump : <code>C:\Windows\Minidump\</code>.</li>
+                </ol></div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">eventvwr</code>
+                  <code class="kb-cmd">sfc /scannow</code>
+                  <code class="kb-cmd">devmgmt.msc</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 6 -->
+            <div class="kb-fiche" data-keywords="rdp bureau à distance termservice connexion refusée remote desktop">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">Bureau à distance (RDP) inaccessible</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Connexion RDP refusée ou timeout, message "Impossible de se connecter à l'ordinateur distant", port 3389 inaccessible.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Vérifier que le service Bureau à distance est actif : <code class="kb-cmd">sc query TermService</code></li>
+                  <li>Si STOPPED : <code class="kb-cmd">sc start TermService</code></li>
+                  <li>Vérifier que RDP est activé sur le poste cible (Système → Bureau à distance → Activer).</li>
+                  <li>Tester la connectivité réseau vers le poste : <code class="kb-cmd">ping 192.168.1.88</code></li>
+                  <li>Vérifier que le port 3389 est bien en LISTEN : <code class="kb-cmd">netstat -an</code> — chercher <em>0.0.0.0:3389</em>.</li>
+                  <li>Vérifier que le pare-feu Windows autorise RDP (règle "Bureau à distance — Utilisateur" active).</li>
+                </ol></div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">sc query TermService</code>
+                  <code class="kb-cmd">sc start TermService</code>
+                  <code class="kb-cmd">netstat -an</code>
+                </div>
+              </div>
+            </div>
+
+            <button class="kb-close-btn" data-close>▲ Fermer Windows 10/11</button>
+          </div><!-- /windows -->
+
+          <!-- ==================== AD / GPO ==================== -->
+          <div class="kb-section" data-section="ad">
+            <div class="kb-section-header">
+              <span class="kb-section-icon">&#128101;</span>
+              <span class="kb-section-title">Active Directory &amp; GPO</span>
+              <span class="kb-section-count">6 fiches</span>
+            </div>
+
+            <!-- Fiche 1 -->
+            <div class="kb-fiche" data-keywords="compte verrouillé lockout ad active directory déverrouiller net user">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">Compte AD verrouillé — déverrouillage</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Utilisateur ne peut pas se connecter, message "Ce compte est verrouillé", plusieurs tentatives de connexion incorrectes détectées.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Confirmer le verrouillage : <code class="kb-cmd">net user lucas.moreau /domain</code> — chercher la ligne <em>Account active: Yes / Account locked: Yes</em>.</li>
+                  <li>Identifier l'origine (poste connecté automatiquement avec ancien mot de passe ?) avant de déverrouiller.</li>
+                  <li>Déverrouiller depuis ADUC (dsa.msc) : clic droit sur l'utilisateur → Propriétés → Compte → décocher "Le compte est verrouillé".</li>
+                  <li>Ou via CMD (N2) : <code class="kb-cmd">net user lucas.moreau /active:yes /domain</code></li>
+                  <li>Demander à l'utilisateur de changer son mot de passe immédiatement après déverrouillage.</li>
+                  <li>Investiguer l'origine des tentatives (périphérique mobile avec ancien MDP sauvegardé, session RDP en arrière-plan).</li>
+                </ol></div>
+                <div class="kb-note">💡 Ne jamais déverrouiller un compte sans d'abord identifier la cause — un déverrouillage en boucle peut signaler une tentative de compromission.</div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">net user lucas.moreau /domain</code>
+                  <code class="kb-cmd">dsa.msc</code>
+                  <code class="kb-cmd">nltest /dclist:corp.local</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 2 -->
+            <div class="kb-fiche" data-keywords="mot de passe expiré réinitialiser password expired ad net user">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">Mot de passe expiré — réinitialisation AD</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Message "Votre mot de passe a expiré" à la connexion, ou "Vous devez changer votre mot de passe" — l'utilisateur ne peut pas se connecter.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Vérifier l'état du compte : <code class="kb-cmd">net user claire.petit /domain</code> — voir <em>Password expires</em>.</li>
+                  <li>Vérifier la politique de mots de passe (durée, complexité) : <code class="kb-cmd">net accounts</code></li>
+                  <li>Réinitialiser le mot de passe depuis ADUC : clic droit → Réinitialiser le mot de passe → cocher "L'utilisateur doit changer le mot de passe à la prochaine ouverture de session".</li>
+                  <li>Communiquer le mot de passe temporaire à l'utilisateur via un canal sécurisé (téléphone, pas email).</li>
+                  <li>L'utilisateur se connecte, change son mot de passe, confirme l'accès.</li>
+                </ol></div>
+                <div class="kb-note">💡 La politique standard recommande : longueur min. 8 caractères, complexité activée, expiration tous les 90 jours. Vérifier net accounts pour les règles en vigueur.</div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">net user claire.petit /domain</code>
+                  <code class="kb-cmd">net accounts</code>
+                  <code class="kb-cmd">dsa.msc</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 3 -->
+            <div class="kb-fiche" data-keywords="gpo stratégie groupe non appliquée gpupdate gpresult diagnostic">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">GPO non appliquée — diagnostic</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Stratégies de sécurité non respectées sur un poste, scripts de démarrage manquants, mappage de lecteurs réseau absent, paramètres d'écran de veille non appliqués.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Forcer l'application des GPO : <code class="kb-cmd">gpupdate /force</code> — vérifier les erreurs affichées.</li>
+                  <li>Vérifier les GPO appliquées au poste : <code class="kb-cmd">gpresult /r</code> (résumé) ou <code class="kb-cmd">gpresult /h C:\gpo-report.html</code> (rapport complet).</li>
+                  <li>Vérifier la connectivité au contrôleur de domaine : <code class="kb-cmd">ping 192.168.1.10</code> puis <code class="kb-cmd">nltest /dclist:corp.local</code></li>
+                  <li>Si le DC est inaccessible, vérifier la résolution DNS : <code class="kb-cmd">nslookup dc01.corp.local</code></li>
+                  <li>Vérifier que le poste est bien joint au domaine et que le compte ordinateur n'est pas désactivé dans ADUC.</li>
+                </ol></div>
+                <div class="kb-note">💡 Les GPO s'appliquent au démarrage (ordinateur) et à la connexion (utilisateur). Un poste hors réseau ou avec un DC inaccessible ne peut pas recevoir les nouvelles stratégies.</div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">gpupdate /force</code>
+                  <code class="kb-cmd">gpresult /r</code>
+                  <code class="kb-cmd">nltest /dclist:corp.local</code>
+                  <code class="kb-cmd">gpedit.msc</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 4 -->
+            <div class="kb-fiche" data-keywords="recherche utilisateur dsquery net user whoami ad domaine">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">Recherche et vérification d'un compte AD</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Besoin de vérifier l'état d'un compte (actif, expiré, groupes), trouver un utilisateur par nom, confirmer l'identité connectée sur un poste.</div>
+                <p class="kb-steps-label">Procédures de recherche</p>
+                <div class="kb-steps"><ol>
+                  <li>Afficher les infos d'un compte précis : <code class="kb-cmd">net user prenom.nom /domain</code> — état du compte, groupes, expiration.</li>
+                  <li>Lister tous les utilisateurs du domaine : <code class="kb-cmd">net user /domain</code></li>
+                  <li>Recherche par nom partiel (LDAP) : <code class="kb-cmd">dsquery user -name "claire*"</code></li>
+                  <li>Lister les ordinateurs du domaine : <code class="kb-cmd">dsquery computer</code></li>
+                  <li>Vérifier l'utilisateur actuellement connecté sur le poste : <code class="kb-cmd">whoami</code></li>
+                  <li>Interface graphique complète : <code class="kb-cmd">dsa.msc</code> (Utilisateurs et ordinateurs AD).</li>
+                </ol></div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">net user prenom.nom /domain</code>
+                  <code class="kb-cmd">dsquery user -name "nom*"</code>
+                  <code class="kb-cmd">dsquery computer</code>
+                  <code class="kb-cmd">whoami</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 5 -->
+            <div class="kb-fiche" data-keywords="politique comptes verrouillage seuil durée complexité net accounts">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">Politique de comptes — comprendre les règles</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Utilisateurs verrouillés fréquemment, incompréhension des règles de complexité, questions sur la durée de validité des mots de passe.</div>
+                <p class="kb-steps-label">Lire la politique en vigueur</p>
+                <div class="kb-steps"><ol>
+                  <li>Afficher la politique complète : <code class="kb-cmd">net accounts</code> — lire les champs clés :</li>
+                  <li><strong>Maximum password age</strong> : durée max avant expiration (ex: 90 jours).</li>
+                  <li><strong>Lockout threshold</strong> : nombre de tentatives avant verrouillage (ex: 5).</li>
+                  <li><strong>Lockout duration</strong> : durée du verrouillage automatique (ex: 30 min).</li>
+                  <li><strong>Minimum password length</strong> : longueur minimale requise.</li>
+                  <li>Expliquer à l'utilisateur les règles et les aider à choisir un mot de passe conforme.</li>
+                </ol></div>
+                <div class="kb-note">💡 Un Lockout threshold de 0 signifie que les comptes ne se verrouillent jamais — attention, c'est un risque de sécurité.</div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">net accounts</code>
+                  <code class="kb-cmd">net accounts /domain</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 6 -->
+            <div class="kb-fiche" data-keywords="kerberos heure synchronisation w32tm authentification domaine">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">Synchronisation de l'heure — erreurs Kerberos</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Échec d'authentification Kerberos (erreur KDC), impossible de joindre le domaine, erreur "L'horloge du client et du serveur ne sont pas synchronisées".</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Kerberos tolère un écart de 5 minutes max entre le poste et le DC. Vérifier l'heure locale du poste.</li>
+                  <li>Vérifier le service de temps Windows : <code class="kb-cmd">w32tm /query /status</code></li>
+                  <li>Forcer la synchronisation avec le DC : <code class="kb-cmd">w32tm /resync /force</code></li>
+                  <li>Si le service W32Time est arrêté : <code class="kb-cmd">sc start w32time</code> puis resynchroniser.</li>
+                  <li>Sur le DC, vérifier qu'il est configuré sur une source NTP externe fiable (pool.ntp.org).</li>
+                </ol></div>
+                <div class="kb-note">💡 Dans un domaine AD, le contrôleur de domaine fait autorité pour l'heure. Les postes synchronisent sur le DC, le DC synchronise sur Internet. Ne jamais modifier l'heure d'un poste manuellement en domaine.</div>
+              </div>
+            </div>
+
+            <button class="kb-close-btn" data-close>▲ Fermer Active Directory &amp; GPO</button>
+          </div><!-- /ad -->
+
+          <!-- ==================== SERVER ==================== -->
+          <div class="kb-section" data-section="server">
+            <div class="kb-section-header">
+              <span class="kb-section-icon">&#128424;</span>
+              <span class="kb-section-title">Windows Server</span>
+              <span class="kb-section-count">6 fiches</span>
+            </div>
+
+            <!-- Fiche 1 -->
+            <div class="kb-fiche" data-keywords="dhcp service arrêté apipa 169 sc query start serveur">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">Service DHCP arrêté — postes en APIPA</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Plusieurs postes obtiennent une IP en 169.254.x.x (APIPA) simultanément — panne réseau généralisée. Un seul poste en APIPA indique plutôt un problème local.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Se connecter sur le serveur DHCP (SRV-FILES ou SRV-DHCP selon l'infra).</li>
+                  <li>Vérifier l'état du service : <code class="kb-cmd">sc query DHCPServer</code></li>
+                  <li>Si STOPPED, démarrer le service : <code class="kb-cmd">sc start DHCPServer</code></li>
+                  <li>Vérifier que le service redémarre automatiquement : <code class="kb-cmd">sc config DHCPServer start=auto</code></li>
+                  <li>Sur un poste client, forcer le renouvellement IP : <code class="kb-cmd">ipconfig /release</code> puis <code class="kb-cmd">ipconfig /renew</code></li>
+                  <li>Vérifier que le poste obtient bien une IP valide : <code class="kb-cmd">ipconfig /all</code></li>
+                </ol></div>
+                <div class="kb-note">💡 Vérifier aussi l'espace disque du serveur DHCP — un disque plein peut empêcher le service de journaliser et donc de démarrer.</div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">sc query DHCPServer</code>
+                  <code class="kb-cmd">sc start DHCPServer</code>
+                  <code class="kb-cmd">ipconfig /release</code>
+                  <code class="kb-cmd">ipconfig /renew</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 2 -->
+            <div class="kb-fiche" data-keywords="partage réseau refusé accès net use lecteur ntfs droits permissions">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1/N2</span>
+                <span class="kb-fiche-title">Partage réseau — accès refusé</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Accès refusé en ouvrant \\SRV-FILES\Partage, lecteur réseau inaccessible, message "Vous ne disposez pas des autorisations nécessaires".</div>
+                <p class="kb-steps-label">Diagnostic étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Vérifier la connectivité réseau vers le serveur : <code class="kb-cmd">ping 192.168.1.20</code></li>
+                  <li>Voir les lecteurs réseau mappés : <code class="kb-cmd">net use</code></li>
+                  <li>Voir les partages disponibles sur le serveur : <code class="kb-cmd">net view \\SRV-FILES</code></li>
+                  <li>Vérifier l'identité de l'utilisateur connecté : <code class="kb-cmd">whoami</code></li>
+                  <li>Sur le serveur, vérifier les permissions NTFS (clic droit → Propriétés → Sécurité) ET les permissions de partage.</li>
+                  <li>Ajouter l'utilisateur ou son groupe au partage avec les droits appropriés (Lecture ou Modification).</li>
+                </ol></div>
+                <div class="kb-note">💡 Il existe deux niveaux de droits : les permissions de <strong>partage</strong> (réseau) et les permissions <strong>NTFS</strong> (fichiers). L'accès effectif est la restriction la plus sévère des deux.</div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">net use</code>
+                  <code class="kb-cmd">net view \\SRV-FILES</code>
+                  <code class="kb-cmd">ping 192.168.1.20</code>
+                  <code class="kb-cmd">whoami</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 3 -->
+            <div class="kb-fiche" data-keywords="disque plein serveur espace critique dir chkdsk logs temp nettoyage">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">Disque serveur critique — gestion de l'espace</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Alertes monitoring "espace disque &lt; 10%", services qui tombent (DHCP, logs), impossibilité de créer des fichiers, sauvegardes échouées.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Vérifier l'espace disponible et les dossiers volumineux : <code class="kb-cmd">dir C:\</code></li>
+                  <li>Identifier les dossiers les plus lourds : logs applicatifs (<code>C:\Windows\Logs</code>), sauvegardes VHD, dossiers temporaires (<code>C:\Windows\Temp</code>).</li>
+                  <li>Vérifier l'intégrité du disque : <code class="kb-cmd">chkdsk C:</code></li>
+                  <li>Nettoyer les fichiers temporaires (Nettoyage de disque en tant qu'admin).</li>
+                  <li>Supprimer ou archiver les anciens journaux et sauvegardes avec validation de l'administrateur système.</li>
+                  <li>Planifier une extension de volume ou l'ajout d'un disque si le problème est structurel.</li>
+                </ol></div>
+                <div class="kb-note">💡 Ne jamais supprimer de fichiers sur un serveur sans accord préalable — certains logs sont requis pour conformité légale ou audit.</div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">dir C:\</code>
+                  <code class="kb-cmd">chkdsk C:</code>
+                  <code class="kb-cmd">systeminfo</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 4 -->
+            <div class="kb-fiche" data-keywords="services windows sc query start stop config auto gestion">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">Gestion des services Windows (sc)</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Application ou fonctionnalité inaccessible, service en état STOPPED ou PAUSED, service qui ne redémarre pas après un crash.</div>
+                <p class="kb-steps-label">Commandes essentielles</p>
+                <div class="kb-steps"><ol>
+                  <li>Vérifier l'état d'un service : <code class="kb-cmd">sc query NomService</code> — états possibles : RUNNING, STOPPED, PAUSED, START_PENDING.</li>
+                  <li>Démarrer un service : <code class="kb-cmd">sc start NomService</code></li>
+                  <li>Arrêter un service : <code class="kb-cmd">sc stop NomService</code></li>
+                  <li>Configurer le démarrage automatique : <code class="kb-cmd">sc config NomService start=auto</code></li>
+                  <li>Configurer la récupération automatique après crash : via services.msc → onglet Récupération.</li>
+                  <li>Interface graphique : <code class="kb-cmd">services.msc</code></li>
+                </ol></div>
+                <div class="kb-note">💡 Noms de services courants : <em>spooler</em> (impression), <em>wuauserv</em> (Windows Update), <em>TermService</em> (RDP), <em>DHCPServer</em> (serveur DHCP), <em>DNS</em> (serveur DNS).</div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">sc query spooler</code>
+                  <code class="kb-cmd">sc start spooler</code>
+                  <code class="kb-cmd">sc stop spooler</code>
+                  <code class="kb-cmd">services.msc</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 5 -->
+            <div class="kb-fiche" data-keywords="dns serveur résolution nslookup flushdns sc query ntds">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">DNS serveur — dépannage résolution</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Les postes ne résolvent plus les noms internes (corp.local), les DCs sont introuvables, nslookup renvoie "timeout" ou "DNS request timed out".</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Sur le serveur DNS (généralement le DC), vérifier le service : <code class="kb-cmd">sc query DNS</code></li>
+                  <li>Si arrêté : <code class="kb-cmd">sc start DNS</code></li>
+                  <li>Tester la résolution depuis un client : <code class="kb-cmd">nslookup dc01.corp.local</code> et <code class="kb-cmd">nslookup google.com</code></li>
+                  <li>Vider le cache DNS du client : <code class="kb-cmd">ipconfig /flushdns</code></li>
+                  <li>Vérifier que les clients pointent vers le bon serveur DNS (l'IP du DC) : <code class="kb-cmd">ipconfig /all</code></li>
+                  <li>Sur le DC, vérifier la console DNS (dnsmgmt.msc) pour des zones manquantes ou des enregistrements corrompus.</li>
+                </ol></div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">sc query DNS</code>
+                  <code class="kb-cmd">nslookup dc01.corp.local</code>
+                  <code class="kb-cmd">ipconfig /flushdns</code>
+                  <code class="kb-cmd">nltest /dclist:corp.local</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 6 -->
+            <div class="kb-fiche" data-keywords="journaux événements eventvwr monitoring surveillance logs système">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">Journaux d'événements — monitoring de base</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Problème intermittent impossible à reproduire, post-incident (que s'est-il passé ?), vérification proactive de la santé d'un serveur.</div>
+                <p class="kb-steps-label">Utilisation de l'Observateur d'événements</p>
+                <div class="kb-steps"><ol>
+                  <li>Ouvrir l'Observateur : <code class="kb-cmd">eventvwr</code></li>
+                  <li>Naviguer vers <strong>Journaux Windows → Système</strong> pour les erreurs OS, services, drivers.</li>
+                  <li>Naviguer vers <strong>Journaux Windows → Application</strong> pour les erreurs applicatives.</li>
+                  <li>Filtrer par niveau : Erreur / Critique (ne pas s'alarmer pour les Avertissements courants).</li>
+                  <li>Filtrer par date/heure pour cibler l'incident.</li>
+                  <li>L'ID d'événement permet de chercher la cause précise sur Microsoft Docs ou le site EventID.net.</li>
+                </ol></div>
+                <div class="kb-note">💡 IDs fréquents : <em>4625</em> = Échec d'ouverture de session, <em>6008</em> = Arrêt inopiné du système, <em>41</em> = Redémarrage inattendu (Kernel-Power).</div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">eventvwr</code>
+                </div>
+              </div>
+            </div>
+
+            <button class="kb-close-btn" data-close>▲ Fermer Windows Server</button>
+          </div><!-- /server -->
+
+          <!-- ==================== M365 ==================== -->
+          <div class="kb-section" data-section="m365">
+            <div class="kb-section-header">
+              <span class="kb-section-icon">&#9729;</span>
+              <span class="kb-section-title">Microsoft 365</span>
+              <span class="kb-section-count">6 fiches</span>
+            </div>
+
+            <!-- Fiche 1 -->
+            <div class="kb-fiche" data-keywords="outlook profil ost corrompu plante emails synchronisation recréer">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">Outlook — profil ou fichier OST corrompu</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Outlook se ferme à l'ouverture, emails non synchronisés depuis X jours, erreur "Le fichier de données Outlook n'a pas pu être ouvert", lenteur excessive.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Fermer Outlook complètement (vérifier dans le Gestionnaire des tâches).</li>
+                  <li>Ouvrir le <strong>Gestionnaire de fichiers de données Outlook</strong> : Fichier → Paramètres du compte → Paramètres du compte → onglet Fichiers de données.</li>
+                  <li>Identifier le fichier OST (.ost) et noter son chemin (généralement <code>%LOCALAPPDATA%\Microsoft\Outlook\</code>).</li>
+                  <li>Supprimer ou renommer le fichier .ost — Outlook le recréera automatiquement à la prochaine ouverture.</li>
+                  <li>Si le problème vient du profil Outlook lui-même : Panneau de configuration → Courrier → Profils → Ajouter un nouveau profil.</li>
+                  <li>Rouvrir Outlook et attendre la resynchronisation complète (peut prendre plusieurs minutes selon la taille de la boîte).</li>
+                </ol></div>
+                <div class="kb-note">💡 Pour M365/Exchange Online, le fichier OST est un cache local. Sa suppression est sans risque — tous les emails sont sur le serveur Exchange et seront re-téléchargés.</div>
+              </div>
+            </div>
+
+            <!-- Fiche 2 -->
+            <div class="kb-fiche" data-keywords="teams audio vidéo micro caméra ne fonctionne pas périphérique son">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">Teams — problèmes audio/vidéo</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Micro non détecté, vidéo absente, interlocuteurs n'entendent pas l'utilisateur, son coupé pendant les réunions Teams.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Vérifier les périphériques au niveau Windows : clic droit sur l'icône son → Paramètres son → vérifier le micro et la sortie par défaut.</li>
+                  <li>Vérifier les permissions d'accès au micro pour Teams : Paramètres Windows → Confidentialité → Microphone → autoriser Teams.</li>
+                  <li>Dans Teams : icône profil → Paramètres → Périphériques → sélectionner le bon micro/haut-parleur/caméra.</li>
+                  <li>Tester avec le bouton "Effectuer un appel test" dans les paramètres Teams.</li>
+                  <li>Si le problème persiste : vider le cache Teams — fermer Teams, supprimer <code>%APPDATA%\Microsoft\Teams\Cache\</code>, rouvrir.</li>
+                  <li>Mettre à jour ou réinstaller les drivers audio/vidéo via <code class="kb-cmd">devmgmt.msc</code>.</li>
+                </ol></div>
+              </div>
+            </div>
+
+            <!-- Fiche 3 -->
+            <div class="kb-fiche" data-keywords="onedrive synchronisation bloquée icône rouge erreur fichier partagé">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">OneDrive — synchronisation bloquée</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Icône OneDrive rouge ou jaune dans la barre des tâches, fichiers avec icône de croix rouge, messages "Synchronisation en pause" ou "Quota dépassé".</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Cliquer sur l'icône OneDrive → voir le détail des erreurs (fichiers bloqués, quota, etc.).</li>
+                  <li>Vérifier la connexion Internet : la synchronisation nécessite un accès à Office 365.</li>
+                  <li>Vérifier que l'espace OneDrive n'est pas saturé (portail OneDrive en ligne).</li>
+                  <li>Si un fichier est en conflit (ex: ouvert par un autre utilisateur), le fermer et relancer la sync.</li>
+                  <li>Noms de fichiers interdits : caractères <code>: * ? &lt; &gt; | " \</code> et noms réservés (<code>CON, PRN, NUL</code>…) — les renommer.</li>
+                  <li>En dernier recours, réinitialiser OneDrive : <code>%localappdata%\Microsoft\OneDrive\onedrive.exe /reset</code></li>
+                </ol></div>
+                <div class="kb-note">💡 Les fichiers en cours d'utilisation par une application (ex: fichier Excel ouvert) ne peuvent pas être synchronisés. Fermer l'application avant de forcer la sync.</div>
+              </div>
+            </div>
+
+            <!-- Fiche 4 -->
+            <div class="kb-fiche" data-keywords="licences m365 microsoft 365 assignation révocation admin utilisateur accès">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">Licences M365 — assignation et révocation</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Utilisateur sans accès à Teams/Outlook/SharePoint, message "Vous n'avez pas de licence pour cette application", nouveau collaborateur sans accès M365.</div>
+                <p class="kb-steps-label">Procédure via le portail admin</p>
+                <div class="kb-steps"><ol>
+                  <li>Se connecter sur <strong>admin.microsoft.com</strong> avec un compte administrateur M365.</li>
+                  <li>Aller dans <strong>Utilisateurs → Utilisateurs actifs</strong> → sélectionner l'utilisateur.</li>
+                  <li>Onglet <strong>Licences et applications</strong> — cocher la licence à assigner (ex: Microsoft 365 Business Standard).</li>
+                  <li>Les applications incluses dans la licence s'affichent en dessous — activer/désactiver selon les besoins.</li>
+                  <li>Sauvegarder. L'accès est effectif dans 5–15 minutes.</li>
+                  <li>Pour révoquer : même procédure, décocher la licence (libère le siège pour un autre utilisateur).</li>
+                </ol></div>
+                <div class="kb-note">💡 Chaque licence M365 consomme un "siège" (seat). Vérifier le quota disponible avant d'assigner une licence — si tous les sièges sont utilisés, contacter le responsable IT pour en acheter.</div>
+              </div>
+            </div>
+
+            <!-- Fiche 5 -->
+            <div class="kb-fiche" data-keywords="exchange online boîte pleine quota archivage emails envoyés refusés">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">Exchange Online — boîte aux lettres saturée</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Emails entrants renvoyés avec erreur "Quota de boîte aux lettres dépassé", utilisateur reçoit une alerte quota, impossible d'envoyer de nouveaux emails.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Dans Outlook : Fichier → Informations → vérifier la taille de la boîte aux lettres.</li>
+                  <li>Vider la Corbeille et les Éléments supprimés de façon permanente.</li>
+                  <li>Activer l'archivage automatique si disponible (Fichier → Nettoyer l'ancienne messagerie).</li>
+                  <li>Si le quota reste insuffisant : admin.microsoft.com → Exchange → Boîtes aux lettres → sélectionner l'utilisateur → Quotas de stockage → augmenter la limite.</li>
+                  <li>Activer la boîte d'archivage Exchange Online pour doubler la capacité (Centre d'administration Exchange → Boîtes aux lettres → Archiver).</li>
+                </ol></div>
+                <div class="kb-note">💡 Quota standard Exchange Online : 50 Go. Avec la boîte d'archivage en ligne activée : 1,5 To. Recommander aux utilisateurs de supprimer les emails avec pièces jointes volumineuses et d'utiliser SharePoint/OneDrive pour le stockage de fichiers.</div>
+              </div>
+            </div>
+
+            <!-- Fiche 6 -->
+            <div class="kb-fiche" data-keywords="sharepoint permissions accès refusé site autorisations groupe partage">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">SharePoint — problèmes de permissions</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Accès refusé sur un site SharePoint, impossible de partager un document, utilisateur ne voit pas les bibliothèques auxquelles il devrait avoir accès.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Sur le site SharePoint concerné : ⚙ Paramètres → <strong>Autorisations du site</strong>.</li>
+                  <li>Vérifier les groupes existants : Propriétaires (contrôle total), Membres (modification), Visiteurs (lecture).</li>
+                  <li>Ajouter l'utilisateur au groupe approprié : bouton <strong>Inviter des personnes</strong> → entrer l'email.</li>
+                  <li>Si les permissions sont héritées d'un site parent, il faut modifier au niveau du site parent ou rompre l'héritage.</li>
+                  <li>Pour les bibliothèques individuelles : clic droit → Gérer l'accès → modifier les autorisations.</li>
+                  <li>Les changements de permissions SharePoint peuvent prendre jusqu'à 24h dans les grands environnements.</li>
+                </ol></div>
+              </div>
+            </div>
+
+            <button class="kb-close-btn" data-close>▲ Fermer Microsoft 365</button>
+          </div><!-- /m365 -->
+
+          <!-- ==================== AZURE ==================== -->
+          <div class="kb-section" data-section="azure">
+            <div class="kb-section-header">
+              <span class="kb-section-icon">&#9889;</span>
+              <span class="kb-section-title">Azure &amp; Sécurité</span>
+              <span class="kb-section-count">6 fiches</span>
+            </div>
+
+            <!-- Fiche 1 -->
+            <div class="kb-fiche" data-keywords="azure ad sso connexion hybride upn synchronisation identité">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">Azure AD — connexion SSO et identité hybride</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>SSO ne fonctionne pas pour M365 malgré un compte AD valide, utilisateur demandé de se réauthentifier constamment, compte introuvable dans Azure AD.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Vérifier que l'utilisateur existe dans Azure AD : portail Azure → Azure Active Directory → Utilisateurs.</li>
+                  <li>Si l'utilisateur existe en AD local mais pas dans Azure AD → problème de synchronisation Azure AD Connect.</li>
+                  <li>Vérifier l'UPN (User Principal Name) : il doit correspondre entre l'AD local et Azure AD (ex: prenom.nom@corp.com).</li>
+                  <li>S'assurer que le poste est bien joint à Azure AD ou hybride (Paramètres → Comptes → Accès professionnel).</li>
+                  <li>Pour les erreurs SSO : vider le cache du navigateur / token ADAL — déconnecter et reconnecter le compte dans Paramètres Windows.</li>
+                </ol></div>
+                <div class="kb-note">💡 Dans un environnement hybride, l'AD local fait autorité. Les modifications de compte doivent être faites dans l'AD local — elles se propagent vers Azure AD via Azure AD Connect.</div>
+              </div>
+            </div>
+
+            <!-- Fiche 2 -->
+            <div class="kb-fiche" data-keywords="mfa réinitialisation authentification multifacteur téléphone bloqué azure">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">Réinitialisation MFA — utilisateur bloqué</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Utilisateur a changé de téléphone et ne peut plus recevoir le code MFA, bloqué à l'écran d'authentification M365, demande de bypass MFA urgent.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Se connecter sur <strong>admin.microsoft.com</strong> ou le portail Azure avec un compte admin MFA.</li>
+                  <li>Aller dans <strong>Utilisateurs → Utilisateurs actifs</strong> → sélectionner l'utilisateur → onglet <strong>Gérer l'authentification multifacteur</strong>.</li>
+                  <li>Cliquer sur <strong>Réinitialiser l'authentification multifacteur</strong> — l'utilisateur sera invité à reconfigurer ses méthodes à la prochaine connexion.</li>
+                  <li>Ou via portail Azure : Azure AD → Utilisateurs → sélectionner → Méthodes d'authentification → Supprimer les méthodes enregistrées.</li>
+                  <li>Guider l'utilisateur pour reconfigurer l'app Authenticator sur son nouveau téléphone.</li>
+                  <li>Conseiller d'enregistrer une méthode de secours (email, numéro de bureau) pour éviter ce scénario.</li>
+                </ol></div>
+                <div class="kb-note">💡 Ne jamais désactiver définitivement le MFA pour résoudre un problème — toujours réinitialiser les méthodes d'authentification. La désactivation du MFA représente un risque de sécurité majeur.</div>
+              </div>
+            </div>
+
+            <!-- Fiche 3 -->
+            <div class="kb-fiche" data-keywords="intune inscription appareil conformité mdm stratégie gestion mobile">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">Intune — inscription et conformité d'appareil</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Appareil marqué "Non conforme" dans Intune, stratégies de sécurité non appliquées, accès aux ressources M365 bloqué par Conditional Access pour non-conformité.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Vérifier l'état de conformité sur le portail Intune : endpoint.microsoft.com → Appareils → sélectionner l'appareil.</li>
+                  <li>Sur le poste Windows : Paramètres → Comptes → Accès professionnel ou scolaire → vérifier l'inscription.</li>
+                  <li>Si l'appareil n'est pas inscrit : cliquer sur <strong>Connecter</strong> et suivre l'assistant d'inscription MDM.</li>
+                  <li>Forcer une synchronisation Intune : Paramètres → Comptes → Accès professionnel → <strong>Informations</strong> → Synchroniser.</li>
+                  <li>Si non conforme malgré inscription : vérifier les politiques de conformité (version Windows à jour, antivirus actif, chiffrement BitLocker).</li>
+                </ol></div>
+              </div>
+            </div>
+
+            <!-- Fiche 4 -->
+            <div class="kb-fiche" data-keywords="conditional access accès bloqué stratégie politique azure connexion refusée">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">Conditional Access — accès bloqué</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Utilisateur bloqué malgré un bon mot de passe et MFA valide, message "Vous ne pouvez pas accéder à cette ressource", accès refusé depuis un certain appareil ou réseau.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Expliquer à l'utilisateur que c'est une politique de sécurité (pas un bug) — ne pas contourner sans autorisation.</li>
+                  <li>Identifier la politique en cause : portail Azure → Azure AD → Sécurité → Conditional Access → Journaux de connexion.</li>
+                  <li>Vérifier les conditions de blocage : appareil non conforme ? Réseau non approuvé ? Pays bloqué ?</li>
+                  <li>Si l'accès est légitime : escalader auprès de l'administrateur Azure AD pour ajouter une exclusion ou modifier la politique.</li>
+                  <li>Si l'utilisateur accède depuis un appareil personnel non inscrit : lui demander d'utiliser un appareil d'entreprise ou d'inscrire son appareil dans Intune.</li>
+                </ol></div>
+                <div class="kb-note">💡 Ne jamais désactiver une politique Conditional Access pour débloquer un utilisateur — cela affecte tous les utilisateurs couverts par cette règle. Toujours utiliser les exclusions individuelles.</div>
+              </div>
+            </div>
+
+            <!-- Fiche 5 -->
+            <div class="kb-fiche" data-keywords="phishing ransomware sécurité incident signalement malware usb">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">Signalement d'un incident de sécurité</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Email de phishing reçu (lien suspect, expéditeur inconnu), clé USB inconnue trouvée, comportement anormal du poste (fenêtres pop-up, chiffrement de fichiers, demande de rançon).</div>
+                <p class="kb-steps-label">Procédure de réponse à un incident</p>
+                <div class="kb-steps"><ol>
+                  <li><strong>Ne pas cliquer, ne pas ouvrir, ne pas brancher</strong> — isoler immédiatement.</li>
+                  <li>Signaler immédiatement à l'équipe IT/RSSI par téléphone (pas par email si le compte peut être compromis).</li>
+                  <li>Si ransomware détecté : déconnecter le poste du réseau immédiatement (débrancher le câble réseau / désactiver le Wi-Fi) pour stopper la propagation.</li>
+                  <li>Ne pas éteindre le poste (préserve les preuves en mémoire) — laisser à disposition des équipes sécurité.</li>
+                  <li>Documenter : heure de découverte, actions effectuées, utilisateur concerné, symptômes observés.</li>
+                  <li>Pour les emails de phishing : les transférer à l'adresse de signalement phishing de l'entreprise ou à report@phishing.gov.fr.</li>
+                </ol></div>
+                <div class="kb-note">💡 Règle d'or : en cas de doute sur un incident de sécurité, escalader IMMÉDIATEMENT. Il vaut mieux une fausse alerte qu'un incident non signalé. Le coût d'un ransomware non contenu est incomparablement plus élevé.</div>
+              </div>
+            </div>
+
+            <!-- Fiche 6 -->
+            <div class="kb-fiche" data-keywords="azure ad connect synchronisation hybride delta full sync">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n2">N2</span>
+                <span class="kb-fiche-title">Azure AD Connect — synchronisation hybride</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Modifications faites dans l'AD local (nouveau mot de passe, nouveau compte) non répercutées dans Azure AD après 30+ minutes, compte introuvable dans M365 malgré création récente.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Azure AD Connect synchronise par défaut toutes les 30 minutes. Attendre d'abord 30 min avant d'escalader.</li>
+                  <li>Pour forcer une synchronisation delta (incrémentale), ouvrir PowerShell sur le serveur AAD Connect :</li>
+                  <li><code>Import-Module ADSync</code> puis <code>Start-ADSyncSyncCycle -PolicyType Delta</code></li>
+                  <li>Vérifier les erreurs de synchronisation : portail Azure → Azure AD → Azure AD Connect → Voir les erreurs de synchronisation.</li>
+                  <li>Si le service AAD Connect est arrêté : services.msc → démarrer "Microsoft Azure AD Sync".</li>
+                  <li>En cas d'erreurs persistantes, escalader au N3/administrateur Azure AD Connect.</li>
+                </ol></div>
+                <div class="kb-note">💡 Note : les commandes AAD Connect sont des commandes PowerShell (pas CMD). Elles s'exécutent uniquement sur le serveur AAD Connect avec les droits admin.</div>
+              </div>
+            </div>
+
+            <button class="kb-close-btn" data-close>▲ Fermer Azure &amp; Sécurité</button>
+          </div><!-- /azure -->
+
+          <!-- ==================== RÉSEAU ==================== -->
+          <div class="kb-section" data-section="reseau">
+            <div class="kb-section-header">
+              <span class="kb-section-icon">&#127760;</span>
+              <span class="kb-section-title">Réseau (TCP/IP, DNS, DHCP)</span>
+              <span class="kb-section-count">6 fiches</span>
+            </div>
+
+            <!-- Fiche 1 -->
+            <div class="kb-fiche" data-keywords="apipa 169.254 perte ip dhcp ipconfig release renew pas réseau">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">APIPA (169.254.x.x) — perte d'IP DHCP</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Pas d'accès réseau, ipconfig affiche 169.254.x.x — c'est une IP auto-attribuée (APIPA) indiquant que le poste n'a pas pu joindre le serveur DHCP.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Confirmer l'IP APIPA : <code class="kb-cmd">ipconfig /all</code> — IP en 169.254.x.x, Autoconfiguration IPv4 Address.</li>
+                  <li>Vérifier le câble réseau ou le Wi-Fi (un câble débranché empêche le DHCP).</li>
+                  <li>Libérer le bail DHCP actuel : <code class="kb-cmd">ipconfig /release</code></li>
+                  <li>Demander un nouveau bail : <code class="kb-cmd">ipconfig /renew</code></li>
+                  <li>Si toujours APIPA après renouvellement : le serveur DHCP est peut-être arrêté ou injoignable. Tester <code class="kb-cmd">ping 192.168.1.1</code> (gateway).</li>
+                  <li>Si plusieurs postes sont affectés simultanément → vérifier le service DHCP côté serveur (voir fiche Windows Server).</li>
+                </ol></div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">ipconfig /all</code>
+                  <code class="kb-cmd">ipconfig /release</code>
+                  <code class="kb-cmd">ipconfig /renew</code>
+                  <code class="kb-cmd">ping 192.168.1.1</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 2 -->
+            <div class="kb-fiche" data-keywords="dns résolution en échec nslookup flushdns timeout google internet">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1/N2</span>
+                <span class="kb-fiche-title">DNS — résolution de noms en échec</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Navigation Internet impossible mais ping vers 8.8.8.8 fonctionne, erreur "Serveur DNS ne répond pas", sites internes introuvables.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Tester la résolution DNS : <code class="kb-cmd">nslookup google.com</code> — si timeout, DNS défaillant.</li>
+                  <li>Tester la connectivité IP (sans DNS) : <code class="kb-cmd">ping 8.8.8.8</code> — si OK, confirme que c'est le DNS, pas le réseau.</li>
+                  <li>Vérifier le DNS configuré sur le poste : <code class="kb-cmd">ipconfig /all</code> — champ "DNS Servers".</li>
+                  <li>Vider le cache DNS local : <code class="kb-cmd">ipconfig /flushdns</code></li>
+                  <li>Si le DNS pointe vers le DC (192.168.1.10) et celui-ci est inaccessible : vérifier la connectivité <code class="kb-cmd">ping 192.168.1.10</code>.</li>
+                  <li>En dépannage temporaire : changer le DNS vers 8.8.8.8 via <code class="kb-cmd">netsh int ip set dns "Ethernet" static 8.8.8.8</code> — NB: résout l'accès Internet mais pas les ressources internes.</li>
+                </ol></div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">nslookup google.com</code>
+                  <code class="kb-cmd">ipconfig /all</code>
+                  <code class="kb-cmd">ipconfig /flushdns</code>
+                  <code class="kb-cmd">ping 8.8.8.8</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 3 -->
+            <div class="kb-fiche" data-keywords="vpn connexion échouée tunnel distant accès interne tracert netstat">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1/N2</span>
+                <span class="kb-fiche-title">VPN — connexion échouée</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>VPN ne se connecte pas, timeout à l'établissement du tunnel, connexion qui se coupe, impossible d'atteindre les ressources internes depuis l'extérieur.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Vérifier la connectivité Internet locale (sans VPN) : <code class="kb-cmd">ping 8.8.8.8</code></li>
+                  <li>Tester la joignabilité du serveur VPN : <code class="kb-cmd">ping 10.10.0.1</code> ou <code class="kb-cmd">ping vpn.corp.local</code></li>
+                  <li>Tracer la route vers le serveur VPN : <code class="kb-cmd">tracert 10.10.0.1</code> — identifier où la connexion échoue.</li>
+                  <li>Vérifier les interfaces réseau actives : <code class="kb-cmd">netsh interface show interface</code></li>
+                  <li>Vérifier les connexions établies : <code class="kb-cmd">netstat -an</code> — chercher l'IP du VPN.</li>
+                  <li>Vérifier les credentials VPN, l'état du certificat client (si VPN SSL/IPsec) et les logs du client VPN.</li>
+                </ol></div>
+                <div class="kb-note">💡 Un pare-feu ou un proxy d'entreprise peut bloquer les ports VPN (UDP 500/4500 pour IPsec, TCP 443 pour SSL VPN). Tester depuis un réseau différent (4G) pour confirmer.</div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">ping 10.10.0.1</code>
+                  <code class="kb-cmd">tracert 10.10.0.1</code>
+                  <code class="kb-cmd">netsh interface show interface</code>
+                  <code class="kb-cmd">netstat -an</code>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fiche 4 -->
+            <div class="kb-fiche" data-keywords="commandes cmd réseau référence ipconfig ping tracert nslookup netstat arp">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">Référence — commandes CMD réseau essentielles</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <p style="font-size:12px; color:var(--text-muted); margin-bottom: 12px;">Cliquez sur une commande pour la copier.</p>
+                <table style="width:100%; border-collapse:collapse; font-size:12px;">
+                  <tr style="border-bottom:1px solid var(--border);"><td style="padding:5px 8px; font-weight:700; color:var(--text-muted); font-size:11px; text-transform:uppercase;">Commande</td><td style="padding:5px 8px; font-weight:700; color:var(--text-muted); font-size:11px; text-transform:uppercase;">Usage</td></tr>
+                  <tr style="border-bottom:1px solid rgba(48,54,61,0.4);"><td style="padding:5px 8px;"><code class="kb-cmd">ipconfig /all</code></td><td style="padding:5px 8px; font-size:12px; color:var(--text-secondary);">Affiche la configuration IP complète (IP, masque, gateway, DNS, MAC)</td></tr>
+                  <tr style="border-bottom:1px solid rgba(48,54,61,0.4);"><td style="padding:5px 8px;"><code class="kb-cmd">ipconfig /release</code> / <code class="kb-cmd">ipconfig /renew</code></td><td style="padding:5px 8px; font-size:12px; color:var(--text-secondary);">Libère puis renouvelle le bail DHCP</td></tr>
+                  <tr style="border-bottom:1px solid rgba(48,54,61,0.4);"><td style="padding:5px 8px;"><code class="kb-cmd">ping 8.8.8.8</code></td><td style="padding:5px 8px; font-size:12px; color:var(--text-secondary);">Teste la connectivité IP (ICMP) vers un hôte</td></tr>
+                  <tr style="border-bottom:1px solid rgba(48,54,61,0.4);"><td style="padding:5px 8px;"><code class="kb-cmd">tracert 8.8.8.8</code></td><td style="padding:5px 8px; font-size:12px; color:var(--text-secondary);">Trace le chemin réseau hop par hop jusqu'à la destination</td></tr>
+                  <tr style="border-bottom:1px solid rgba(48,54,61,0.4);"><td style="padding:5px 8px;"><code class="kb-cmd">nslookup google.com</code></td><td style="padding:5px 8px; font-size:12px; color:var(--text-secondary);">Résout un nom DNS et indique le serveur utilisé</td></tr>
+                  <tr style="border-bottom:1px solid rgba(48,54,61,0.4);"><td style="padding:5px 8px;"><code class="kb-cmd">netstat -an</code></td><td style="padding:5px 8px; font-size:12px; color:var(--text-secondary);">Liste les connexions TCP/UDP actives et les ports en écoute</td></tr>
+                  <tr style="border-bottom:1px solid rgba(48,54,61,0.4);"><td style="padding:5px 8px;"><code class="kb-cmd">netstat -b</code></td><td style="padding:5px 8px; font-size:12px; color:var(--text-secondary);">Idem + affiche le processus associé à chaque connexion</td></tr>
+                  <tr style="border-bottom:1px solid rgba(48,54,61,0.4);"><td style="padding:5px 8px;"><code class="kb-cmd">arp -a</code></td><td style="padding:5px 8px; font-size:12px; color:var(--text-secondary);">Affiche la table ARP (correspondance IP ↔ adresse MAC)</td></tr>
+                  <tr style="border-bottom:1px solid rgba(48,54,61,0.4);"><td style="padding:5px 8px;"><code class="kb-cmd">netsh winsock reset</code></td><td style="padding:5px 8px; font-size:12px; color:var(--text-secondary);">Réinitialise la pile Winsock (après malware, corruption)</td></tr>
+                  <tr><td style="padding:5px 8px;"><code class="kb-cmd">ipconfig /flushdns</code></td><td style="padding:5px 8px; font-size:12px; color:var(--text-secondary);">Vide le cache DNS local du poste</td></tr>
+                </table>
+              </div>
+            </div>
+
+            <!-- Fiche 5 -->
+            <div class="kb-fiche" data-keywords="modèle osi couches réseau tcp ip physique liaison transport application">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">Modèle OSI — les 7 couches simplifiées</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Le modèle OSI est un cadre conceptuel pour comprendre où un problème réseau se situe.</p>
+                <table class="osi-table">
+                  <tr><th>#</th><th>Couche</th><th>Rôle</th><th>Outil de diagnostic</th></tr>
+                  <tr><td style="color:#58a6ff; font-weight:700;">7</td><td style="font-weight:600;">Application</td><td style="font-size:12px; color:var(--text-secondary);">HTTP, FTP, DNS, SMTP</td><td style="font-size:12px;"><code class="kb-cmd">nslookup</code> navigateur</td></tr>
+                  <tr><td style="color:#58a6ff; font-weight:700;">6</td><td style="font-weight:600;">Présentation</td><td style="font-size:12px; color:var(--text-secondary);">Chiffrement, compression (TLS)</td><td style="font-size:12px;">Logs navigateur / Wireshark</td></tr>
+                  <tr><td style="color:#58a6ff; font-weight:700;">5</td><td style="font-weight:600;">Session</td><td style="font-size:12px; color:var(--text-secondary);">Établissement/maintien des sessions</td><td style="font-size:12px;"><code class="kb-cmd">netstat -an</code></td></tr>
+                  <tr><td style="color:#79c0ff; font-weight:700;">4</td><td style="font-weight:600;">Transport</td><td style="font-size:12px; color:var(--text-secondary);">TCP (fiable) / UDP (rapide), ports</td><td style="font-size:12px;"><code class="kb-cmd">netstat -an</code></td></tr>
+                  <tr><td style="color:#79c0ff; font-weight:700;">3</td><td style="font-weight:600;">Réseau</td><td style="font-size:12px; color:var(--text-secondary);">IP, routage, adressage</td><td style="font-size:12px;"><code class="kb-cmd">ping</code> <code class="kb-cmd">tracert</code></td></tr>
+                  <tr><td style="color:#d29922; font-weight:700;">2</td><td style="font-weight:600;">Liaison</td><td style="font-size:12px; color:var(--text-secondary);">MAC, switch, trames Ethernet</td><td style="font-size:12px;"><code class="kb-cmd">arp -a</code></td></tr>
+                  <tr><td style="color:#d29922; font-weight:700;">1</td><td style="font-weight:600;">Physique</td><td style="font-size:12px; color:var(--text-secondary);">Câble, Wi-Fi, signal électrique</td><td style="font-size:12px;">Vérification physique du câble</td></tr>
+                </table>
+                <div class="kb-note">💡 Mémo : "Tous les gens semblent timides, quelques pensées abstraites" — ou en anglais "All People Seem To Need Data Processing" (A-P-S-T-N-D-P, couches 7→1).</div>
+              </div>
+            </div>
+
+            <!-- Fiche 6 -->
+            <div class="kb-fiche" data-keywords="wifi sans fil connexion coupée signal faible adaptateur driver netsh wlan">
+              <div class="kb-fiche-header">
+                <span class="kb-badge n1">N1</span>
+                <span class="kb-fiche-title">Wi-Fi — dépannage de base</span>
+                <span class="kb-arrow">▼</span>
+              </div>
+              <div class="kb-fiche-body">
+                <div class="kb-symptom"><strong>Symptômes</strong>Wi-Fi déconnecté ou instable, réseau Wi-Fi n'apparaît pas dans la liste, authentification échoue malgré le bon mot de passe, signal faible.</div>
+                <p class="kb-steps-label">Résolution étape par étape</p>
+                <div class="kb-steps"><ol>
+                  <li>Vérifier que le Wi-Fi est activé (touche Fn + Wi-Fi, ou interrupteur physique sur certains PC).</li>
+                  <li>Vérifier l'état de l'adaptateur : <code class="kb-cmd">netsh wlan show interfaces</code></li>
+                  <li>Lister les profils Wi-Fi enregistrés : <code class="kb-cmd">netsh wlan show profiles</code></li>
+                  <li>Si le réseau est connu mais ne se connecte pas : oublier le réseau (clic droit → Oublier) et se reconnecter.</li>
+                  <li>Réinitialiser l'adaptateur Wi-Fi : <code class="kb-cmd">netsh wlan disconnect</code> puis reconnecter manuellement.</li>
+                  <li>Si l'adaptateur n'apparaît pas : vérifier dans <code class="kb-cmd">devmgmt.msc</code> — réinstaller le driver si nécessaire.</li>
+                </ol></div>
+                <div class="kb-cmds-row"><p>Commandes associées</p>
+                  <code class="kb-cmd">netsh wlan show interfaces</code>
+                  <code class="kb-cmd">netsh wlan show profiles</code>
+                  <code class="kb-cmd">netsh wlan disconnect</code>
+                  <code class="kb-cmd">devmgmt.msc</code>
+                </div>
+              </div>
+            </div>
+
+            <button class="kb-close-btn" data-close>▲ Fermer Réseau</button>
+          </div><!-- /reseau -->
+
+        </div><!-- /#kbPanel -->
+
+      </div><!-- /.page-content -->
+
+      <footer class="app-footer">
+        <span>IT Support Simulator — Plateforme d'apprentissage</span>
+      </footer>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // ---- USER ----
+    const user = localStorage.getItem('user') || 'User';
+    document.querySelector('.user-avatar').textContent = user.charAt(0).toUpperCase();
+    document.querySelector('.user-name').textContent = user;
+
+    // ---- CARD CLICK → SHOW SECTION ----
+    const kbPanel = document.getElementById('kbPanel');
+
+    document.querySelectorAll('#kbGrid .knowledge-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const cat = card.dataset.cat;
+        const alreadyActive = card.classList.contains('kb-active');
+
+        // Deactivate all cards and hide all sections
+        document.querySelectorAll('#kbGrid .knowledge-card').forEach(c => c.classList.remove('kb-active'));
+        document.querySelectorAll('.kb-section').forEach(s => s.classList.remove('visible'));
+
+        if (alreadyActive) {
+          kbPanel.classList.remove('visible');
+          kbPanel.style.display = 'none';
+        } else {
+          card.classList.add('kb-active');
+          const section = document.querySelector(`.kb-section[data-section="${cat}"]`);
+          if (section) {
+            section.classList.add('visible');
+            kbPanel.style.display = 'block';
+            kbPanel.classList.add('visible');
+            // Smooth scroll to panel
+            setTimeout(() => kbPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+          }
+        }
+      });
+    });
+
+    // ---- CLOSE BUTTONS ----
+    document.querySelectorAll('.kb-close-btn[data-close]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#kbGrid .knowledge-card').forEach(c => c.classList.remove('kb-active'));
+        document.querySelectorAll('.kb-section').forEach(s => s.classList.remove('visible'));
+        kbPanel.style.display = 'none';
+        kbPanel.classList.remove('visible');
+        document.getElementById('kbGrid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    // ---- FICHE ACCORDION ----
+    document.querySelectorAll('.kb-fiche-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const body  = header.nextElementSibling;
+        const arrow = header.querySelector('.kb-arrow');
+        const open  = body.classList.contains('open');
+        body.classList.toggle('open', !open);
+        arrow.classList.toggle('open', !open);
+      });
+    });
+
+    // ---- CMD CLICK → COPY TO CLIPBOARD ----
+    document.querySelectorAll('.kb-cmd').forEach(el => {
+      el.addEventListener('click', () => {
+        const cmd = el.dataset.cmd || el.textContent.trim();
+        navigator.clipboard.writeText(cmd).then(() => {
+          el.classList.add('copied');
+          const prev = el.textContent;
+          el.textContent = '✓ Copié';
+          setTimeout(() => {
+            el.classList.remove('copied');
+            el.textContent = prev;
+          }, 1200);
+        }).catch(() => {
+          // Fallback for file:// where clipboard may be blocked
+          const ta = document.createElement('textarea');
+          ta.value = cmd;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          el.classList.add('copied');
+          const prev = el.textContent;
+          el.textContent = '✓ Copié';
+          setTimeout(() => { el.classList.remove('copied'); el.textContent = prev; }, 1200);
+        });
+      });
+    });
+
+    // ---- SEARCH ----
+    const searchInput = document.getElementById('kbSearch');
+    const searchNote  = document.getElementById('searchNote');
+
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.trim().toLowerCase();
+
+      if (!query) {
+        // Reset to normal state
+        searchNote.style.display = 'none';
+        document.querySelectorAll('.kb-fiche').forEach(f => f.classList.remove('hidden'));
+        // Keep currently selected section open
+        return;
+      }
+
+      // Show all sections when searching
+      document.querySelectorAll('#kbGrid .knowledge-card').forEach(c => c.classList.remove('kb-active'));
+      document.querySelectorAll('.kb-section').forEach(s => s.classList.add('visible'));
+      kbPanel.style.display = 'block';
+      kbPanel.classList.add('visible');
+
+      let total = 0;
+      document.querySelectorAll('.kb-fiche').forEach(fiche => {
+        const keywords = (fiche.dataset.keywords || '').toLowerCase();
+        const title    = fiche.querySelector('.kb-fiche-title')?.textContent.toLowerCase() || '';
+        const body     = fiche.querySelector('.kb-fiche-body')?.textContent.toLowerCase() || '';
+        const match    = keywords.includes(query) || title.includes(query) || body.includes(query);
+        fiche.classList.toggle('hidden', !match);
+        if (match) total++;
+      });
+
+      // Hide empty sections
+      document.querySelectorAll('.kb-section').forEach(section => {
+        const visible = section.querySelectorAll('.kb-fiche:not(.hidden)').length > 0;
+        section.classList.toggle('visible', visible);
+      });
+
+      searchNote.style.display = 'block';
+      searchNote.textContent = total > 0
+        ? `${total} fiche${total > 1 ? 's' : ''} trouvée${total > 1 ? 's' : ''} pour "${searchInput.value.trim()}"`
+        : `Aucun résultat pour "${searchInput.value.trim()}"`;
+    });
+  </script>
+</body>
+</html>

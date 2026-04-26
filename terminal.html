@@ -1,0 +1,965 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Support Simulator — Terminal</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ---- TERMINAL STYLES ---- */
+    .terminal-wrapper {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      overflow: hidden;
+      font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+      font-size: 13px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    .terminal-titlebar {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .terminal-titlebar .term-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .terminal-titlebar .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .dot-red   { background: #ff5f57; }
+    .dot-yellow { background: #febc2e; }
+    .dot-green  { background: #28c840; }
+
+    .terminal-titlebar .term-title {
+      font-size: 12px;
+      color: #8b949e;
+      flex: 1;
+      text-align: center;
+    }
+
+    .terminal-titlebar .term-machine {
+      font-size: 12px;
+      color: #58a6ff;
+      font-weight: 600;
+    }
+
+    .terminal-output {
+      background: #0d1117;
+      padding: 16px;
+      min-height: 420px;
+      max-height: 520px;
+      overflow-y: auto;
+      line-height: 1.7;
+      color: #c9d1d9;
+    }
+
+    .terminal-input-row {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 10px 16px;
+      background: #0d1117;
+      border-top: 1px solid #21262d;
+    }
+
+    .term-prompt-label {
+      color: #58a6ff;
+      font-weight: 700;
+      white-space: nowrap;
+      font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+      font-size: 13px;
+    }
+
+    .terminal-input-row input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #c9d1d9;
+      font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+      font-size: 13px;
+      padding: 0 8px;
+      caret-color: #58a6ff;
+    }
+
+    /* Terminal line types */
+    .term-line  { color: #c9d1d9; white-space: pre-wrap; word-break: break-all; }
+    .term-cmd   { color: #c9d1d9; }
+    .term-cmd .term-prompt { color: #58a6ff; font-weight: 700; }
+    .term-ok    { color: #3fb950; }
+    .term-error { color: #f85149; }
+    .term-warn  { color: #d29922; }
+    .term-info  { color: #58a6ff; }
+    .term-val   { color: #79c0ff; }
+    .term-header { color: #f0f6fc; font-weight: 700; }
+    .term-cmd-name { color: #ff7b72; }
+    .term-desc  { color: #8b949e; }
+
+    /* Blinking cursor */
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: #58a6ff;
+      vertical-align: middle;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* Quick command chips */
+    .cmd-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px 0;
+    }
+
+    .cmd-chip {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      color: #79c0ff;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .cmd-chip:hover {
+      background: #1f2937;
+      border-color: #58a6ff;
+      color: #58a6ff;
+    }
+
+    /* Machine selector */
+    .machine-select {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .machine-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .machine-card:hover {
+      border-color: var(--accent);
+    }
+
+    .machine-card.selected {
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    .machine-card .mc-icon { font-size: 28px; margin-bottom: 8px; }
+    .machine-card .mc-name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+    .machine-card .mc-desc { font-size: 12px; color: var(--text-muted); }
+    .machine-card .mc-ip   { font-size: 11px; color: var(--accent); font-family: monospace; margin-top: 6px; }
+
+    /* CMD Reference panel */
+    #refToggle:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    #refArrow.open { transform: rotate(180deg); }
+
+    .ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .ref-table tr { border-bottom: 1px solid rgba(48,54,61,0.6); }
+    .ref-table tr:last-child { border-bottom: none; }
+
+    .ref-table td {
+      padding: 5px 6px;
+      vertical-align: top;
+    }
+
+    .ref-table td:last-child {
+      color: var(--text-muted);
+      padding-left: 10px;
+    }
+
+    .ref-cmd {
+      font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+      color: #79c0ff;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .ref-cmd:hover {
+      color: #58a6ff;
+      text-decoration: underline;
+    }
+
+    /* Active ticket banner */
+    .ticket-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: rgba(59,130,246,0.07);
+      border: 1px solid rgba(59,130,246,0.35);
+      border-left: 4px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 24px;
+    }
+    .tb-label { font-size: 11px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+    .tb-issue { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+    .tb-meta  { font-size: 12px; color: var(--text-muted); }
+    .tb-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+  <div class="sidebar-overlay"></div>
+
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">IT</div>
+          <div>
+            <span class="logo-text">IT Support</span>
+            <span class="logo-sub">Simulator v1.0</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html">
+          <span class="nav-icon">&#9632;</span>
+          <span data-i18n="dashboard">Tableau de bord</span>
+        </a>
+        <a href="tickets.html">
+          <span class="nav-icon">&#9993;</span>
+          <span data-i18n="tickets">Tickets</span>
+        </a>
+        <a href="simulation.html">
+          <span class="nav-icon">&#9742;</span>
+          <span data-i18n="simulation">Simulation</span>
+        </a>
+        <a href="terminal.html" class="active">
+          <span class="nav-icon">&#9654;</span>
+          <span data-i18n="nav_terminal">Terminal</span>
+        </a>
+        <a href="knowledge.html">
+          <span class="nav-icon">&#9733;</span>
+          <span data-i18n="knowledge">Base de connaissances</span>
+        </a>
+        <a href="entretiens.html">
+          <span class="nav-icon">&#9998;</span>
+          <span data-i18n="interviews">Entretiens</span>
+        </a>
+        <a href="quiz.html">
+          <span class="nav-icon">&#9889;</span>
+          <span>Quiz</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger">&#9776;</button>
+        </div>
+        <div class="topbar-right">
+          <div class="user-info">
+            <div class="user-avatar">U</div>
+            <span class="user-name">User</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="page-header">
+          <h1 data-i18n="terminal_title">Terminal CMD Simulé</h1>
+          <p data-i18n="terminal_subtitle">Pratiquez les commandes Windows comme dans un vrai environnement de support IT</p>
+        </div>
+
+        <!-- MACHINE SELECTOR -->
+        <h3 style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;" data-i18n="terminal_choose_machine">Choisir un poste à diagnostiquer :</h3>
+        <div class="machine-select">
+          <div class="machine-card selected" data-machine="normal">
+            <div class="mc-icon">💻</div>
+            <div class="mc-name">PC-MARKETING-01</div>
+            <div class="mc-desc" data-i18n="mc_normal_desc">Fonctionnel — Entraînement libre</div>
+            <div class="mc-ip">192.168.1.45</div>
+          </div>
+          <div class="machine-card" data-machine="password">
+            <div class="mc-icon">🔒</div>
+            <div class="mc-name">PC-JURIDIQUE-03</div>
+            <div class="mc-desc" data-i18n="mc_password_desc">Mot de passe AD expiré</div>
+            <div class="mc-ip">192.168.1.78</div>
+          </div>
+          <div class="machine-card" data-machine="locked">
+            <div class="mc-icon">⛔</div>
+            <div class="mc-name">PC-COMPTA-07</div>
+            <div class="mc-desc" data-i18n="mc_locked_desc">Compte AD verrouillé</div>
+            <div class="mc-ip">192.168.1.92</div>
+          </div>
+          <div class="machine-card" data-machine="nointernet">
+            <div class="mc-icon">🌐</div>
+            <div class="mc-name">PC-RH-02</div>
+            <div class="mc-desc" data-i18n="mc_nointernet_desc">Pas d'accès Internet</div>
+            <div class="mc-ip">169.254.45.12 (APIPA)</div>
+          </div>
+          <div class="machine-card" data-machine="printer">
+            <div class="mc-icon">🖨</div>
+            <div class="mc-name">PC-DIRECTION-01</div>
+            <div class="mc-desc" data-i18n="mc_printer_desc">Imprimante réseau hors ligne</div>
+            <div class="mc-ip">192.168.1.55</div>
+          </div>
+          <div class="machine-card" data-machine="gpo">
+            <div class="mc-icon">📋</div>
+            <div class="mc-name">PC-ETAGE3-12</div>
+            <div class="mc-desc" data-i18n="mc_gpo_desc">GPO non appliquée</div>
+            <div class="mc-ip">192.168.1.112</div>
+          </div>
+          <div class="machine-card" data-machine="fileshare">
+            <div class="mc-icon">📁</div>
+            <div class="mc-name">PC-LOGISTIQUE-04</div>
+            <div class="mc-desc" data-i18n="mc_fileshare_desc">Accès partage réseau refusé</div>
+            <div class="mc-ip">192.168.1.134</div>
+          </div>
+          <div class="machine-card" data-machine="sfc">
+            <div class="mc-icon">💥</div>
+            <div class="mc-name">PC-ACHATS-09</div>
+            <div class="mc-desc" data-i18n="mc_sfc_desc">Fichiers système corrompus</div>
+            <div class="mc-ip">192.168.1.67</div>
+          </div>
+          <div class="machine-card" data-machine="vpn">
+            <div class="mc-icon">🔐</div>
+            <div class="mc-name">PC-COMPTA-11</div>
+            <div class="mc-desc">VPN — connexion échouée</div>
+            <div class="mc-ip">192.168.1.99</div>
+          </div>
+          <div class="machine-card" data-machine="dns">
+            <div class="mc-icon">🌍</div>
+            <div class="mc-name">PC-RH-05</div>
+            <div class="mc-desc">DNS — résolution en échec</div>
+            <div class="mc-ip">192.168.1.47</div>
+          </div>
+          <div class="machine-card" data-machine="srvfiles">
+            <div class="mc-icon">🗄</div>
+            <div class="mc-name">SRV-FILES</div>
+            <div class="mc-desc">Serveur — disque critique + DHCP arrêté</div>
+            <div class="mc-ip">192.168.1.20</div>
+          </div>
+          <div class="machine-card" data-machine="srvdc">
+            <div class="mc-icon">🏢</div>
+            <div class="mc-name">SRV-DC01</div>
+            <div class="mc-desc">Contrôleur de domaine AD</div>
+            <div class="mc-ip">192.168.1.10</div>
+          </div>
+          <div class="machine-card" data-machine="rdp">
+            <div class="mc-icon">🖥</div>
+            <div class="mc-name">PC-RH-06</div>
+            <div class="mc-desc">Bureau à distance — service arrêté</div>
+            <div class="mc-ip">192.168.1.88</div>
+          </div>
+          <div class="machine-card" data-machine="winupdate">
+            <div class="mc-icon">⚙</div>
+            <div class="mc-name">PC-COMMERCIAL-05</div>
+            <div class="mc-desc">Windows Update — service en échec</div>
+            <div class="mc-ip">192.168.1.73</div>
+          </div>
+          <div class="machine-card" data-machine="slowpc">
+            <div class="mc-icon">🐌</div>
+            <div class="mc-name">PC-PROD-02</div>
+            <div class="mc-desc">PC très lent — CPU/mémoire saturés</div>
+            <div class="mc-ip">192.168.1.156</div>
+          </div>
+        </div>
+
+        <!-- QUICK COMMANDS -->
+        <div style="margin-bottom: 16px;">
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">
+            Commandes rapides — <span id="chipsLabel" style="color: var(--accent);">Entraînement libre</span>
+          </p>
+          <div class="cmd-chips" id="cmdChips"></div>
+        </div>
+
+        <!-- TERMINAL -->
+        <div class="terminal-wrapper">
+          <div class="terminal-titlebar">
+            <div class="term-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <span class="term-title" data-i18n="terminal_titlebar">Invite de commandes — Simulateur IT Support</span>
+            <span class="term-machine" id="termMachineLabel">PC-MARKETING-01</span>
+          </div>
+          <div class="terminal-output" id="termOutput"></div>
+          <div class="terminal-input-row">
+            <span class="term-prompt-label" id="termPrompt">PC-MARKETING-01&gt;</span>
+            <input type="text" id="termInput" autocomplete="off" autocorrect="off" spellcheck="false" autofocus>
+            <span class="cursor"></span>
+          </div>
+        </div>
+
+        <!-- LEGEND -->
+        <div class="card" style="margin-top: 20px;">
+          <h3 style="font-size: 14px; margin-bottom: 12px;" data-i18n="terminal_legend">Légende des couleurs</h3>
+          <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; font-family: monospace;">
+            <span style="color: #3fb950;" data-i18n="terminal_legend_ok">■ Succès / OK</span>
+            <span style="color: #f85149;" data-i18n="terminal_legend_error">■ Erreur / Échec</span>
+            <span style="color: #d29922;" data-i18n="terminal_legend_warn">■ Avertissement</span>
+            <span style="color: #58a6ff;" data-i18n="terminal_legend_info">■ Invite / Info</span>
+            <span style="color: #79c0ff;" data-i18n="terminal_legend_val">■ Valeur / Résultat</span>
+            <span style="color: #f0f6fc;" data-i18n="terminal_legend_header">■ En-tête de section</span>
+          </div>
+        </div>
+
+        <!-- RÉFÉRENCE CMD -->
+        <div style="margin-top: 16px;">
+          <button id="refToggle" style="
+            width: 100%; display: flex; align-items: center; justify-content: space-between;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+            padding: 12px 16px; cursor: pointer; color: var(--text-secondary); font-size: 13px;
+            transition: all 0.15s ease;">
+            <span style="display:flex; align-items:center; gap: 8px;">
+              <span style="color: var(--accent); font-family: monospace; font-weight: 700;">C:\&gt;</span>
+              Référence CMD — Commandes support IT
+            </span>
+            <span id="refArrow" style="font-size: 11px; transition: transform 0.2s;">▼</span>
+          </button>
+
+          <div id="refPanel" style="display: none; margin-top: 4px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;">
+            <div style="padding: 16px; background: var(--bg-card);">
+
+              <!-- GRID -->
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+
+                <!-- Réseau -->
+                <div>
+                  <p style="font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px;">Réseau</p>
+                  <table class="ref-table">
+                    <tr><td class="ref-cmd" data-cmd="ipconfig /all">ipconfig /all</td><td>Config IP complète</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="ipconfig /release">ipconfig /release</td><td>Libère le bail DHCP</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="ipconfig /renew">ipconfig /renew</td><td>Renouvelle le bail DHCP</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="ping 8.8.8.8">ping &lt;hôte&gt;</td><td>Test connectivité</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="ping -n 10 8.8.8.8">ping -n 10 &lt;hôte&gt;</td><td>Ping N paquets</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="tracert 8.8.8.8">tracert &lt;hôte&gt;</td><td>Trace la route réseau</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="nslookup google.com">nslookup &lt;domaine&gt;</td><td>Résolution DNS</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="netstat -an">netstat -an</td><td>Connexions actives</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="netstat -b">netstat -b</td><td>Connexions + processus</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="arp -a">arp -a</td><td>Table ARP</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="netsh winsock reset">netsh winsock reset</td><td>Réinitialise Winsock</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="netsh int ip reset">netsh int ip reset</td><td>Réinitialise TCP/IP</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="netsh interface show interface">netsh interface show</td><td>État des interfaces</td></tr>
+                  </table>
+                </div>
+
+                <!-- AD / GPO -->
+                <div>
+                  <p style="font-size: 11px; font-weight: 700; color: #a855f7; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px;">Active Directory / GPO</p>
+                  <table class="ref-table">
+                    <tr><td class="ref-cmd" data-cmd="net user">net user</td><td>Liste les utilisateurs</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="net user claire.petit /domain">net user &lt;user&gt; /domain</td><td>Infos compte AD</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="net accounts">net accounts</td><td>Politique de comptes</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="gpupdate /force">gpupdate /force</td><td>Applique les GPO</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="nltest /dclist:corp.local">nltest /dclist:&lt;domaine&gt;</td><td>Liste les DC</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="dsquery user">dsquery user</td><td>Recherche utilisateurs AD</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="dsquery computer">dsquery computer</td><td>Recherche postes AD</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="whoami">whoami</td><td>Utilisateur connecté</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="dsa.msc">dsa.msc</td><td>Ouvre ADUC (AD)</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="gpedit.msc">gpedit.msc</td><td>Éditeur de stratégie</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="net use">net use</td><td>Lecteurs réseau</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="net view">net view</td><td>Ressources partagées</td></tr>
+                  </table>
+                </div>
+
+                <!-- Services -->
+                <div>
+                  <p style="font-size: 11px; font-weight: 700; color: var(--warning); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px;">Services Windows</p>
+                  <table class="ref-table">
+                    <tr><td class="ref-cmd" data-cmd="sc query spooler">sc query &lt;service&gt;</td><td>Statut d'un service</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="sc start spooler">sc start &lt;service&gt;</td><td>Démarre un service</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="sc stop spooler">sc stop &lt;service&gt;</td><td>Arrête un service</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="sc query wuauserv">sc query wuauserv</td><td>Windows Update</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="sc query TermService">sc query TermService</td><td>Bureau à distance (RDP)</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="sc query DHCPServer">sc query DHCPServer</td><td>Serveur DHCP</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="sc query spooler">sc query spooler</td><td>Spouleur d'impression</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="services.msc">services.msc</td><td>Gestionnaire services</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="net start wuauserv">net start &lt;service&gt;</td><td>Démarre (variante)</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="net stop wuauserv">net stop &lt;service&gt;</td><td>Arrête (variante)</td></tr>
+                  </table>
+                </div>
+
+                <!-- Processus & Système -->
+                <div>
+                  <p style="font-size: 11px; font-weight: 700; color: var(--success); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px;">Processus &amp; Système</p>
+                  <table class="ref-table">
+                    <tr><td class="ref-cmd" data-cmd="tasklist">tasklist</td><td>Liste des processus</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="taskkill /im notepad.exe /f">taskkill /im &lt;proc&gt; /f</td><td>Arrête par nom</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="taskkill /pid 1234 /f">taskkill /pid &lt;PID&gt; /f</td><td>Arrête par PID</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="systeminfo">systeminfo</td><td>Infos système complètes</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="hostname">hostname</td><td>Nom du poste</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="sfc /scannow">sfc /scannow</td><td>Vérifie fichiers système</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="dism /online /cleanup-image /restorehealth">dism /restorehealth</td><td>Répare l'image Windows</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="chkdsk C: /f">chkdsk C: /f</td><td>Vérifie le disque</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="eventvwr">eventvwr</td><td>Observateur d'événements</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="msconfig">msconfig</td><td>Config. démarrage</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="regedit">regedit</td><td>Éditeur de registre</td></tr>
+                    <tr><td class="ref-cmd" data-cmd="devmgmt.msc">devmgmt.msc</td><td>Gestionnaire périph.</td></tr>
+                  </table>
+                </div>
+
+              </div><!-- /grid -->
+
+              <p style="font-size: 11px; color: var(--text-muted); margin-top: 14px; text-align: right;">
+                Cliquez sur une commande pour la copier dans le terminal
+              </p>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <footer class="app-footer">
+        <span data-i18n="footer">IT Support Simulator — Plateforme d'apprentissage</span>
+      </footer>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/terminal.js"></script>
+  <script>
+    // ---- USER ----
+    const userName = localStorage.getItem('user') || 'User';
+    document.querySelector('.user-avatar').textContent = userName.charAt(0).toUpperCase();
+    document.querySelector('.user-name').textContent = userName;
+
+    // ---- MACHINE CONTEXTS ----
+    const machines = {
+      normal: {
+        hostname: 'PC-MARKETING-01', username: 'marie.dupont',
+        domain: 'CORP.LOCAL', ip: '192.168.1.45',
+        gateway: '192.168.1.1', dns1: '192.168.1.10', dns2: '8.8.8.8',
+        mac: 'A4-C3-F0-12-34-56', internetOK: true,
+        printerOK: true, serverShareOK: true, sfcErrors: false
+      },
+      password: {
+        hostname: 'PC-JURIDIQUE-03', username: 'claire.petit',
+        domain: 'CORP.LOCAL', ip: '192.168.1.78',
+        gateway: '192.168.1.1', dns1: '192.168.1.10', dns2: '8.8.8.8',
+        mac: 'B2-A1-C3-FF-21-09', internetOK: true,
+        adPasswordExpired: true, adUserLocked: false,
+        printerOK: true, serverShareOK: true
+      },
+      locked: {
+        hostname: 'PC-COMPTA-07', username: 'lucas.moreau',
+        domain: 'CORP.LOCAL', ip: '192.168.1.92',
+        gateway: '192.168.1.1', dns1: '192.168.1.10', dns2: '8.8.8.8',
+        mac: 'C4-D5-E6-11-22-33', internetOK: true,
+        adUserLocked: true, adPasswordExpired: false,
+        printerOK: true, serverShareOK: true
+      },
+      nointernet: {
+        hostname: 'PC-RH-02', username: 'nadia.bensalem',
+        domain: 'CORP.LOCAL', ip: 'APIPA',
+        gateway: '192.168.1.1', dns1: '192.168.1.10', dns2: '8.8.8.8',
+        mac: 'D1-E2-F3-44-55-66', internetOK: false, dnsOK: false,
+        pingFails: ['8.8.8.8', 'google', 'microsoft', '192.168.1.10'],
+        printerOK: false, serverShareOK: false
+      },
+      printer: {
+        hostname: 'PC-DIRECTION-01', username: 'luc.bernard',
+        domain: 'CORP.LOCAL', ip: '192.168.1.55',
+        gateway: '192.168.1.1', dns1: '192.168.1.10', dns2: '8.8.8.8',
+        mac: 'E5-F6-A7-77-88-99', internetOK: true,
+        printerOK: false, printerIP: '192.168.1.200',
+        pingFails: ['192.168.1.200'],
+        serverShareOK: true, services: { spooler: 'STOPPED' }
+      },
+      gpo: {
+        hostname: 'PC-ETAGE3-12', username: 'pierre.morel',
+        domain: 'CORP.LOCAL', ip: '192.168.1.112',
+        gateway: '192.168.1.1', dns1: '192.168.1.10', dns2: '8.8.8.8',
+        mac: 'F0-11-22-33-44-55', internetOK: true,
+        gpoBroken: true, printerOK: true, serverShareOK: true
+      },
+      fileshare: {
+        hostname: 'PC-LOGISTIQUE-04', username: 'pierre.morel',
+        domain: 'CORP.LOCAL', ip: '192.168.1.134',
+        gateway: '192.168.1.1', dns1: '192.168.1.10', dns2: '8.8.8.8',
+        mac: '01-22-33-44-55-A6', internetOK: true,
+        serverShareOK: false, printerOK: true
+      },
+      sfc: {
+        hostname: 'PC-ACHATS-09', username: 'emilie.durand',
+        domain: 'CORP.LOCAL', ip: '192.168.1.67',
+        gateway: '192.168.1.1', dns1: '192.168.1.10', dns2: '8.8.8.8',
+        mac: '12-34-56-78-9A-BC', internetOK: true,
+        sfcErrors: true, printerOK: true, serverShareOK: true
+      },
+      vpn: {
+        hostname: 'PC-COMPTA-11', username: 'marie.dupont',
+        domain: 'CORP.LOCAL', ip: '192.168.1.99',
+        gateway: '192.168.1.1', dns1: '192.168.1.10', dns2: '8.8.8.8',
+        mac: '3C-A0-67-F1-2E-88', internetOK: true, dnsOK: true,
+        vpnOK: false,
+        pingFails: ['10.10.0.1', 'vpn.corp.local', '10.10.'],
+        printerOK: true, serverShareOK: true
+      },
+      dns: {
+        hostname: 'PC-RH-05', username: 'isabelle.renaud',
+        domain: 'CORP.LOCAL', ip: '192.168.1.47',
+        gateway: '192.168.1.1', dns1: '192.168.1.10', dns2: '8.8.8.8',
+        mac: '7F-B2-11-CC-44-D9', internetOK: false, dnsOK: false,
+        pingFails: ['8.8.8.8', 'google', 'microsoft', 'corp.local', 'dc01'],
+        printerOK: true, serverShareOK: false
+      },
+      srvfiles: {
+        hostname: 'SRV-FILES', username: 'admin.it',
+        domain: 'CORP.LOCAL', ip: '192.168.1.20',
+        gateway: '192.168.1.1', dns1: '192.168.1.10', dns2: '8.8.8.8',
+        mac: '00-1A-2B-3C-4D-01', internetOK: true, dnsOK: true,
+        isServer: true, diskFull: true,
+        services: { DHCPServer: 'STOPPED', spooler: 'RUNNING', WinRM: 'RUNNING' },
+        serverShareOK: true, printerOK: true
+      },
+      srvdc: {
+        hostname: 'SRV-DC01', username: 'admin.it',
+        domain: 'CORP.LOCAL', ip: '192.168.1.10',
+        gateway: '192.168.1.1', dns1: '127.0.0.1', dns2: '192.168.1.11',
+        mac: '00-1A-2B-3C-4D-02', internetOK: true, dnsOK: true,
+        isServer: true, domainController: true,
+        services: { NTDS: 'RUNNING', DNS: 'RUNNING', Netlogon: 'RUNNING', KDC: 'RUNNING' },
+        serverShareOK: true, printerOK: true
+      },
+      rdp: {
+        hostname: 'PC-RH-06', username: 'karim.mansouri',
+        domain: 'CORP.LOCAL', ip: '192.168.1.88',
+        gateway: '192.168.1.1', dns1: '192.168.1.10', dns2: '8.8.8.8',
+        mac: 'AA-BB-CC-11-22-33', internetOK: true, dnsOK: true,
+        services: { TermService: 'STOPPED' },
+        printerOK: true, serverShareOK: true
+      },
+      winupdate: {
+        hostname: 'PC-COMMERCIAL-05', username: 'antoine.roux',
+        domain: 'CORP.LOCAL', ip: '192.168.1.73',
+        gateway: '192.168.1.1', dns1: '192.168.1.10', dns2: '8.8.8.8',
+        mac: 'DD-EE-FF-44-55-66', internetOK: true, dnsOK: true,
+        windowsUpdateFails: true,
+        services: { wuauserv: 'STOPPED', bits: 'STOPPED' },
+        printerOK: true, serverShareOK: true
+      },
+      slowpc: {
+        hostname: 'PC-PROD-02', username: 'franck.petit',
+        domain: 'CORP.LOCAL', ip: '192.168.1.156',
+        gateway: '192.168.1.1', dns1: '192.168.1.10', dns2: '8.8.8.8',
+        mac: '11-22-33-AA-BB-CC', internetOK: true, dnsOK: true,
+        cpuHigh: true,
+        printerOK: true, serverShareOK: true
+      }
+    };
+
+    let currentMachine = 'normal';
+
+    // ---- CHIPS PAR MACHINE ----
+    const machineChips = {
+      normal: [
+        ['ipconfig /all','ipconfig /all'], ['ping 8.8.8.8','ping 8.8.8.8'],
+        ['ping 192.168.1.1','ping gateway'], ['nslookup google.com','nslookup'],
+        ['tracert 8.8.8.8','tracert 8.8.8.8'], ['gpupdate /force','gpupdate /force'],
+        ['systeminfo','systeminfo'], ['tasklist','tasklist'],
+        ['netstat -an','netstat -an'], ['arp -a','arp -a'], ['help','help'],
+      ],
+      password: [
+        ['net user claire.petit /domain','net user /domain'],
+        ['nltest /dclist:corp.local','nltest /dclist'],
+        ['dsquery user','dsquery user'], ['whoami','whoami'],
+        ['net accounts','net accounts'], ['gpupdate /force','gpupdate /force'],
+        ['dsa.msc','dsa.msc'], ['ipconfig /all','ipconfig /all'], ['help','help'],
+      ],
+      locked: [
+        ['net user lucas.moreau /domain','net user /domain'],
+        ['net accounts','net accounts'], ['dsquery user','dsquery user'],
+        ['nltest /dclist:corp.local','nltest /dclist'],
+        ['whoami','whoami'], ['dsa.msc','dsa.msc'], ['help','help'],
+      ],
+      nointernet: [
+        ['ipconfig /all','ipconfig /all'], ['ipconfig /release','ipconfig /release'],
+        ['ipconfig /renew','ipconfig /renew'], ['ping 8.8.8.8','ping 8.8.8.8'],
+        ['ping 192.168.1.1','ping gateway'], ['nslookup google.com','nslookup'],
+        ['netsh winsock reset','netsh winsock reset'],
+        ['netsh int ip reset','netsh int ip reset'], ['arp -a','arp -a'], ['help','help'],
+      ],
+      printer: [
+        ['ping 192.168.1.200','ping imprimante'], ['sc query spooler','sc query spooler'],
+        ['sc stop spooler','sc stop spooler'], ['sc start spooler','sc start spooler'],
+        ['tasklist','tasklist'], ['services.msc','services.msc'],
+        ['ipconfig /all','ipconfig /all'], ['help','help'],
+      ],
+      gpo: [
+        ['gpupdate /force','gpupdate /force'], ['nltest /dclist:corp.local','nltest /dclist'],
+        ['ping 192.168.1.10','ping DC01'], ['dsquery user','dsquery user'],
+        ['gpedit.msc','gpedit.msc'], ['systeminfo','systeminfo'],
+        ['ipconfig /all','ipconfig /all'], ['help','help'],
+      ],
+      fileshare: [
+        ['net use','net use'], ['ping 192.168.1.20','ping SRV-FILES'],
+        ['net view','net view'], ['whoami','whoami'],
+        ['ipconfig /all','ipconfig /all'], ['netstat -an','netstat -an'], ['help','help'],
+      ],
+      sfc: [
+        ['sfc /scannow','sfc /scannow'],
+        ['dism /online /cleanup-image /restorehealth','dism /restorehealth'],
+        ['chkdsk C: /f','chkdsk C: /f'], ['systeminfo','systeminfo'],
+        ['tasklist','tasklist'], ['help','help'],
+      ],
+      vpn: [
+        ['ping 10.10.0.1','ping serveur VPN'], ['ping 8.8.8.8','ping internet'],
+        ['netstat -an','netstat -an'],
+        ['netsh interface show interface','netsh interface'],
+        ['ipconfig /all','ipconfig /all'], ['tracert 10.10.0.1','tracert VPN'],
+        ['help','help'],
+      ],
+      dns: [
+        ['ipconfig /all','ipconfig /all'], ['ipconfig /release','ipconfig /release'],
+        ['ipconfig /renew','ipconfig /renew'], ['nslookup google.com','nslookup google'],
+        ['nslookup dc01.corp.local','nslookup DC01'],
+        ['ping 192.168.1.10','ping DNS (DC01)'],
+        ['netsh int ip reset','netsh int ip reset'], ['help','help'],
+      ],
+      srvfiles: [
+        ['sc query DHCPServer','sc query DHCPServer'],
+        ['sc start DHCPServer','sc start DHCPServer'],
+        ['dir C:\\','dir C:\\'], ['systeminfo','systeminfo'],
+        ['net use','net use'], ['tasklist','tasklist'],
+        ['sc query spooler','sc query spooler'], ['help','help'],
+      ],
+      srvdc: [
+        ['nltest /dclist:corp.local','nltest /dclist'],
+        ['dsquery user','dsquery user'], ['dsquery computer','dsquery computer'],
+        ['sc query NTDS','sc query NTDS'], ['sc query Netlogon','sc query Netlogon'],
+        ['sc query DNS','sc query DNS'], ['dsa.msc','dsa.msc'], ['help','help'],
+      ],
+      rdp: [
+        ['sc query TermService','sc query TermService'],
+        ['sc start TermService','sc start TermService'],
+        ['netstat -an','netstat -an'], ['netstat -b','netstat -b'],
+        ['systeminfo','systeminfo'], ['ipconfig /all','ipconfig /all'], ['help','help'],
+      ],
+      winupdate: [
+        ['sc query wuauserv','sc query wuauserv'], ['sc query bits','sc query bits'],
+        ['sc start wuauserv','sc start wuauserv'], ['sc start bits','sc start bits'],
+        ['net start wuauserv','net start wuauserv'],
+        ['systeminfo','systeminfo'], ['tasklist','tasklist'], ['help','help'],
+      ],
+      slowpc: [
+        ['tasklist','tasklist'],
+        ['taskkill /im MsMpEng.exe /f','taskkill MsMpEng'],
+        ['sc query WinDefend','sc query WinDefend'],
+        ['systeminfo','systeminfo'], ['netstat -b','netstat -b'],
+        ['ping 8.8.8.8','ping 8.8.8.8'], ['help','help'],
+      ],
+    };
+
+    const machineLabels = {
+      normal:    'Entraînement libre',     password:  'Mot de passe expiré',
+      locked:    'Compte verrouillé',      nointernet:'IP APIPA — pas d\'internet',
+      printer:   'Imprimante hors ligne',  gpo:       'GPO non appliquée',
+      fileshare: 'Partage réseau refusé',  sfc:       'Fichiers système corrompus',
+      vpn:       'VPN — connexion échouée',dns:       'DNS — résolution en échec',
+      srvfiles:  'Serveur — disque + DHCP',srvdc:     'Contrôleur de domaine',
+      rdp:       'Bureau à distance arrêté',winupdate: 'Windows Update en échec',
+      slowpc:    'PC très lent — CPU saturé',
+    };
+
+    function renderChips(key) {
+      const container = document.getElementById('cmdChips');
+      const chips = machineChips[key] || machineChips.normal;
+      container.innerHTML = chips.map(([cmd, label]) =>
+        `<span class="cmd-chip" data-cmd="${cmd}">${label}</span>`
+      ).join('');
+      container.querySelectorAll('.cmd-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const input = document.getElementById('termInput');
+          input.value = chip.dataset.cmd;
+          input.focus();
+        });
+      });
+      document.getElementById('chipsLabel').textContent = machineLabels[key] || '';
+    }
+
+    function selectMachine(key) {
+      currentMachine = key;
+      Terminal.setContext(machines[key]);
+      document.querySelectorAll('.machine-card').forEach(c => c.classList.remove('selected'));
+      document.querySelector(`[data-machine="${key}"]`).classList.add('selected');
+      document.getElementById('termMachineLabel').textContent = machines[key].hostname;
+      renderChips(key);
+      // Clear and reinit
+      document.getElementById('termOutput').innerHTML = '';
+      Terminal.printLine('Microsoft Windows [Version 10.0.22631.3296]', '');
+      Terminal.printLine('(c) Microsoft Corporation. All rights reserved.', '');
+      Terminal.blank();
+      Terminal.printLine(`Connecté à : <span class="term-val">${machines[key].hostname}</span> (${machines[key].ip})`, 'term-info');
+      Terminal.blank();
+    }
+
+    // ---- INIT TERMINAL ----
+    Terminal.setContext(machines.normal);
+    Terminal.init('#termOutput', '#termInput', '#termPrompt');
+    renderChips('normal');
+
+    // Machine selector
+    document.querySelectorAll('.machine-card').forEach(card => {
+      card.addEventListener('click', () => selectMachine(card.dataset.machine));
+    });
+
+    // ---- ACTIVE TICKET BANNER ----
+    const DEPT_HOSTNAME = {
+      'Direction':           'PC-DIRECTION-01',
+      'Direction Générale':  'PC-DG-01',
+      'Commercial':          'PC-COMMERCIAL-05',
+      'Ressources Humaines': 'PC-RH-02',
+      'Comptabilité':        'PC-COMPTA-07',
+      'Marketing':           'PC-MARKETING-01',
+      'IT / Helpdesk':       'PC-IT-01',
+      'Finance':             'PC-FINANCE-03',
+      'Formation':           'PC-FORMATION-02',
+      'Production':          'PC-PROD-02',
+      'Logistique':          'PC-LOGISTIQUE-04',
+      'R&D':                 'PC-RD-01',
+      'Achats':              'PC-ACHATS-09',
+      'Juridique':           'PC-JURIDIQUE-03',
+      'Service Client':      'PC-SCLIENT-01',
+      'Qualité':             'PC-QUALITE-02',
+      'Communication':       'PC-COMM-01'
+    };
+
+    function callerToUsername(name) {
+      const base  = name.toLowerCase().normalize('NFD').replace(/̀-ͯ/g, '');
+      const parts = base.split(' ');
+      return parts[0] + '.' + parts.slice(1).join('');
+    }
+
+    function renderActiveBanner() {
+      try {
+        const raw = localStorage.getItem('it_active_ticket');
+        if (!raw) return;
+        const ticket = JSON.parse(raw);
+
+        const banner = document.createElement('div');
+        banner.className = 'ticket-banner';
+        banner.id = 'activeBanner';
+        banner.innerHTML = `
+          <div style="flex:1">
+            <div class="tb-label">&#9874; Résolution en cours — Ticket #${ticket.id}</div>
+            <div class="tb-issue">${ticket.issue}</div>
+            <div class="tb-meta">${ticket.caller} &middot; ${ticket.dept}</div>
+          </div>
+          <div class="tb-actions">
+            <button class="btn btn-success" id="btnFinishTicket">&#10003; Marquer résolu</button>
+            <button class="btn btn-outline" id="btnCancelTicket">Annuler</button>
+          </div>`;
+
+        const pageContent = document.querySelector('.page-content');
+        pageContent.insertBefore(banner, pageContent.firstChild);
+
+        // 1. Select machine type (sets simulation behavior)
+        selectMachine(ticket.machine || 'normal');
+
+        // 2. Override hostname/username with actual ticket data
+        const hostname = DEPT_HOSTNAME[ticket.dept] || 'PC-USER-01';
+        const username = callerToUsername(ticket.caller);
+        Terminal.setContext({ hostname, username });
+        document.getElementById('termMachineLabel').textContent = hostname;
+
+        // 3. Deselect all machine cards — the banner already shows the active machine
+        document.querySelectorAll('.machine-card').forEach(c => c.classList.remove('selected'));
+
+        // 4. Reprint terminal header with correct identity
+        document.getElementById('termOutput').innerHTML = '';
+        Terminal.printLine('Microsoft Windows [Version 10.0.22631.3296]', '');
+        Terminal.printLine('(c) Microsoft Corporation. All rights reserved.', '');
+        Terminal.blank();
+        Terminal.printLine(`Connecté à : <span class="term-val">${hostname}</span> &mdash; <span class="term-warn">Ticket #${ticket.id} actif</span>`, 'term-info');
+        Terminal.blank();
+
+        document.getElementById('btnFinishTicket').addEventListener('click', () => {
+          try {
+            const saved = localStorage.getItem('it_tickets_state');
+            if (saved) {
+              const ts = JSON.parse(saved);
+              const t  = ts.find(t => t.id === ticket.id);
+              if (t) {
+                t.status = 'resolved';
+                const now  = new Date();
+                const time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+                t.notes.push({ author: 'Système', date: time, text: 'Résolu via Terminal CMD.' });
+                localStorage.setItem('it_tickets_state', JSON.stringify(ts));
+              }
+            }
+          } catch(e) {}
+          localStorage.removeItem('it_active_ticket');
+          window.location.href = 'tickets.html';
+        });
+
+        document.getElementById('btnCancelTicket').addEventListener('click', () => {
+          localStorage.removeItem('it_active_ticket');
+          document.getElementById('activeBanner').remove();
+        });
+
+      } catch(e) {}
+    }
+    renderActiveBanner();
+
+    // ---- RÉFÉRENCE CMD PANEL ----
+    const refToggle = document.getElementById('refToggle');
+    const refPanel  = document.getElementById('refPanel');
+    const refArrow  = document.getElementById('refArrow');
+
+    refToggle.addEventListener('click', () => {
+      const open = refPanel.style.display !== 'none';
+      refPanel.style.display = open ? 'none' : 'block';
+      refArrow.classList.toggle('open', !open);
+    });
+
+    document.querySelectorAll('.ref-cmd').forEach(el => {
+      el.addEventListener('click', () => {
+        const input = document.getElementById('termInput');
+        input.value = el.dataset.cmd;
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+      });
+    });
+  </script>
+</body>
+</html>

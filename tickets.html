@@ -1,0 +1,502 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Support Simulator — Tickets</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Level badges */
+    .lvl-badge { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 20px; letter-spacing: 0.04em; display: inline-block; margin-top: 4px; }
+    .lvl-n1f { background: rgba(63,185,80,0.15);  color: #3fb950; }
+    .lvl-n1m { background: rgba(88,166,255,0.15); color: #58a6ff; }
+    .lvl-n2m { background: rgba(168,85,247,0.15); color: #a855f7; }
+    .lvl-n2d { background: rgba(248,81,73,0.15);  color: #f85149; }
+
+    /* Category pills — no wrap, scroll horizontal si besoin */
+    .ticket-filter-row { display: flex; align-items: center; gap: 10px; padding: 10px 0 0; flex-wrap: nowrap; overflow: hidden; }
+    .cat-pills-row { display: flex; flex-wrap: nowrap; gap: 5px; flex: 1; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+    .cat-pills-row::-webkit-scrollbar { display: none; }
+    .cat-pill-t { font-size: 11px; padding: 3px 9px; border-radius: 20px; border: 1px solid var(--border); background: transparent; cursor: pointer; color: var(--text-muted); transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
+    .cat-pill-t:hover { border-color: var(--accent); color: var(--text-primary); }
+    .cat-pill-t.active { border-color: var(--accent); background: rgba(59,130,246,0.12); color: var(--accent); font-weight: 700; }
+
+    /* Priority select */
+    .priority-select { font-size: 12px; padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-card); color: var(--text-secondary); cursor: pointer; outline: none; flex-shrink: 0; }
+    .priority-select:hover { border-color: var(--accent); }
+
+    /* Dept sub-text in table */
+    .td-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+    /* Truncate long issue titles */
+    .td-issue-text { display: block; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Detail level row */
+    .detail-level-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <div class="sidebar-overlay"></div>
+
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">IT</div>
+          <div>
+            <span class="logo-text">IT Support</span>
+            <span class="logo-sub">Simulator v1.0</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html">
+          <span class="nav-icon">&#9632;</span>
+          <span data-i18n="dashboard">Tableau de bord</span>
+        </a>
+        <a href="tickets.html" class="active">
+          <span class="nav-icon">&#9993;</span>
+          <span data-i18n="tickets">Tickets</span>
+        </a>
+        <a href="simulation.html">
+          <span class="nav-icon">&#9742;</span>
+          <span data-i18n="simulation">Simulation</span>
+        </a>
+        <a href="terminal.html">
+          <span class="nav-icon">&#9654;</span>
+          <span data-i18n="nav_terminal">Terminal</span>
+        </a>
+        <a href="knowledge.html">
+          <span class="nav-icon">&#9733;</span>
+          <span data-i18n="knowledge">Base de connaissances</span>
+        </a>
+        <a href="entretiens.html">
+          <span class="nav-icon">&#9998;</span>
+          <span data-i18n="interviews">Entretiens</span>
+        </a>
+        <a href="quiz.html">
+          <span class="nav-icon">&#9889;</span>
+          <span>Quiz</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger">&#9776;</button>
+          <div class="search-box">
+            <span class="search-icon">&#128269;</span>
+            <input type="text" data-i18n="search" placeholder="Rechercher..." id="ticketSearch">
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="user-info">
+            <div class="user-avatar">U</div>
+            <span class="user-name">User</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="page-header">
+          <h1 data-i18n="tickets_title">Gestion des Tickets</h1>
+          <p data-i18n="tickets_subtitle">Gérez les demandes de support comme dans un vrai environnement GLPI</p>
+        </div>
+
+        <!-- TICKET SPLIT: List + Detail -->
+        <div class="ticket-split">
+
+          <!-- LEFT: Ticket List -->
+          <div class="card" id="ticketListPanel">
+            <div class="ticket-toolbar">
+              <div class="ticket-filters">
+                <button class="filter-btn active" data-filter="all">Tous <span class="count" id="countAll">0</span></button>
+                <button class="filter-btn" data-filter="open">Ouverts <span class="count" id="countOpen">0</span></button>
+                <button class="filter-btn" data-filter="progress">En cours <span class="count" id="countProgress">0</span></button>
+                <button class="filter-btn" data-filter="resolved">Résolus <span class="count" id="countResolved">0</span></button>
+              </div>
+            </div>
+
+            <!-- CATEGORY + PRIORITY FILTERS -->
+            <div class="ticket-filter-row">
+              <div class="cat-pills-row" id="catPills">
+                <span class="cat-pill-t active" data-cat="all">Toutes</span>
+                <span class="cat-pill-t" data-cat="Windows">Windows</span>
+                <span class="cat-pill-t" data-cat="M365">M365</span>
+                <span class="cat-pill-t" data-cat="Réseau">Réseau</span>
+                <span class="cat-pill-t" data-cat="AD/GPO">AD/GPO</span>
+                <span class="cat-pill-t" data-cat="Hardware">Hardware</span>
+                <span class="cat-pill-t" data-cat="Sécurité">Sécurité</span>
+                <span class="cat-pill-t" data-cat="Server">Server</span>
+              </div>
+              <select id="priorityFilter" class="priority-select">
+                <option value="all">Toutes priorités</option>
+                <option value="critical">🔴 Critique</option>
+                <option value="high">🟠 Haute</option>
+                <option value="medium">🟡 Moyenne</option>
+                <option value="low">🟢 Basse</option>
+              </select>
+            </div>
+
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID / Niveau</th>
+                    <th>Problème / Service</th>
+                    <th>Catégorie</th>
+                    <th>Priorité</th>
+                    <th>Statut</th>
+                    <th>SLA</th>
+                  </tr>
+                </thead>
+                <tbody id="ticketTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- RIGHT: Ticket Detail -->
+          <div class="card ticket-detail-panel" id="ticketDetailPanel" style="display:none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h2 id="detailTitle" style="font-size: 18px;">Ticket #001</h2>
+              <button class="btn btn-outline" id="btnBackList">&#10005;</button>
+            </div>
+            <div class="detail-level-row">
+              <span id="detailLevelBadge"></span>
+              <span id="detailCategoryBadge" style="font-size:12px; color:var(--text-muted);"></span>
+            </div>
+
+            <div class="ticket-meta">
+              <div class="meta-item">
+                <span class="meta-label" data-i18n="caller">Appelant</span>
+                <span class="meta-value" id="detailCaller">—</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label" data-i18n="department">Service</span>
+                <span class="meta-value" id="detailDept">—</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label" data-i18n="category">Catégorie</span>
+                <span class="meta-value" id="detailCategory">—</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label" data-i18n="priority">Priorité</span>
+                <span class="meta-value" id="detailPriority">—</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label" data-i18n="status">Statut</span>
+                <span class="meta-value" id="detailStatus">—</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label" data-i18n="tech_assigned">Technicien</span>
+                <span class="meta-value" id="detailTech">—</span>
+              </div>
+            </div>
+
+            <div class="ticket-description" id="detailDescription">—</div>
+
+            <div class="ticket-actions-bar" id="ticketActionsBar">
+              <!-- buttons inserted by JS -->
+            </div>
+
+            <h3 style="font-size: 14px; margin-bottom: 12px;" data-i18n="notes">Notes</h3>
+            <div class="ticket-notes" id="detailNotes"></div>
+
+            <div class="note-input-area">
+              <textarea id="noteInput" data-i18n="note_placeholder" placeholder="Ajouter une note..."></textarea>
+              <button class="btn btn-primary" id="btnAddNote" data-i18n="add_note">Ajouter</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="app-footer">
+        <span data-i18n="footer">IT Support Simulator — Plateforme d'apprentissage</span>
+      </footer>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/tickets.js"></script>
+  <script>
+    // ---- USER ----
+    const user = localStorage.getItem('user') || 'Technicien';
+    document.querySelector('.user-avatar').textContent = user.charAt(0).toUpperCase();
+    document.querySelector('.user-name').textContent = user;
+
+    // ---- TICKET DATA — persisted in localStorage ----
+    const LS_TICKETS = 'it_tickets_state';
+    function loadTickets() {
+      try {
+        const saved = localStorage.getItem(LS_TICKETS);
+        if (saved) return JSON.parse(saved);
+      } catch(e) {}
+      return TICKETS.map(t => ({ ...t, notes: t.notes.map(n => ({ ...n })) }));
+    }
+    function saveTickets() {
+      try { localStorage.setItem(LS_TICKETS, JSON.stringify(tickets)); } catch(e) {}
+    }
+    let tickets = loadTickets();
+
+    let currentFilter   = 'all';
+    let currentCatFilter = 'all';
+    let currentPrioFilter = 'all';
+    let selectedTicket  = null;
+
+    // ---- LEVEL HELPERS ----
+    const levelClass = { 'N1 Facile': 'lvl-n1f', 'N1 Moyen': 'lvl-n1m', 'N2 Moyen': 'lvl-n2m', 'N2 Difficile': 'lvl-n2d' };
+    function levelBadge(level) {
+      const cls = levelClass[level] || 'lvl-n1m';
+      return `<span class="lvl-badge ${cls}">${level}</span>`;
+    }
+
+    // ---- RENDER ----
+    function renderTickets() {
+      const tbody  = document.getElementById('ticketTableBody');
+      const search = document.getElementById('ticketSearch').value.toLowerCase();
+
+      // Base set: search + category + priority (ignoring status)
+      const baseFiltered = tickets.filter(t => {
+        const matchSearch = !search ||
+          t.issue.toLowerCase().includes(search) ||
+          t.caller.toLowerCase().includes(search) ||
+          t.dept.toLowerCase().includes(search) ||
+          t.category.toLowerCase().includes(search);
+        const matchCat  = currentCatFilter  === 'all' || t.category === currentCatFilter;
+        const matchPrio = currentPrioFilter === 'all' || t.priority === currentPrioFilter;
+        return matchSearch && matchCat && matchPrio;
+      });
+
+      // Status filter applied on top
+      const filtered = baseFiltered.filter(t => {
+        if (currentFilter === 'all')      return true;
+        if (currentFilter === 'open')     return t.status === 'open';
+        if (currentFilter === 'progress') return t.status === 'progress';
+        if (currentFilter === 'resolved') return t.status === 'resolved' || t.status === 'closed';
+        return true;
+      });
+
+      // Counts reflect search + category + priority context
+      document.getElementById('countAll').textContent      = baseFiltered.length;
+      document.getElementById('countOpen').textContent     = baseFiltered.filter(t => t.status === 'open').length;
+      document.getElementById('countProgress').textContent = baseFiltered.filter(t => t.status === 'progress').length;
+      document.getElementById('countResolved').textContent = baseFiltered.filter(t => t.status === 'resolved' || t.status === 'closed').length;
+
+      const priorityBadge = { low: 'badge-low', medium: 'badge-medium', high: 'badge-high', critical: 'badge-critical' };
+      const priorityLabel = { low: 'priority_low', medium: 'priority_medium', high: 'priority_high', critical: 'priority_critical' };
+      const statusBadge   = { open: 'badge-open', progress: 'badge-progress', resolved: 'badge-resolved', closed: 'badge-closed' };
+      const statusLabel   = { open: 'status_open', progress: 'status_in_progress', resolved: 'status_resolved', closed: 'status_closed' };
+      const slaColors = { ok: 'var(--success)', warning: 'var(--warning)', breach: 'var(--danger)' };
+      const slaLabels = { ok: 'sla_ok', warning: 'sla_warning', breach: 'sla_breach' };
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted); font-size:13px;">Aucun ticket trouvé</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(t => `
+        <tr class="clickable" data-id="${t.id}">
+          <td>
+            <strong>#${t.id}</strong>
+            <div>${levelBadge(t.level)}</div>
+          </td>
+          <td>
+            <span class="td-issue-text" title="${t.issue}">${t.issue}</span>
+            <div class="td-sub">${t.dept} · ${t.caller}</div>
+          </td>
+          <td>${t.category}</td>
+          <td><span class="badge ${priorityBadge[t.priority]}">${App.translations[priorityLabel[t.priority]] || t.priority}</span></td>
+          <td><span class="badge ${statusBadge[t.status]}">${App.translations[statusLabel[t.status]] || t.status}</span></td>
+          <td><span class="sla-indicator"><span class="dot" style="background:${slaColors[t.sla]}"></span> ${App.translations[slaLabels[t.sla]] || t.sla}</span></td>
+        </tr>
+      `).join('');
+
+      tbody.querySelectorAll('tr.clickable').forEach(row => {
+        row.addEventListener('click', () => openTicketDetail(row.dataset.id));
+      });
+    }
+
+    // ---- DETAIL PANEL ----
+    function openTicketDetail(id) {
+      selectedTicket = tickets.find(t => t.id === id);
+      if (!selectedTicket) return;
+
+      document.getElementById('ticketDetailPanel').style.display = 'block';
+      document.getElementById('detailTitle').textContent = `Ticket #${selectedTicket.id}`;
+
+      // Level badge + category in header row
+      document.getElementById('detailLevelBadge').innerHTML    = levelBadge(selectedTicket.level);
+      document.getElementById('detailCategoryBadge').textContent = selectedTicket.category;
+
+      document.getElementById('detailCaller').textContent   = selectedTicket.caller;
+      document.getElementById('detailDept').textContent     = selectedTicket.dept;
+      document.getElementById('detailCategory').textContent = selectedTicket.category;
+      document.getElementById('detailPriority').textContent = App.translations['priority_' + selectedTicket.priority] || selectedTicket.priority;
+      document.getElementById('detailStatus').textContent   = App.translations['status_' + (selectedTicket.status === 'progress' ? 'in_progress' : selectedTicket.status)] || selectedTicket.status;
+      document.getElementById('detailTech').textContent     = selectedTicket.tech;
+      document.getElementById('detailDescription').textContent = selectedTicket.description;
+
+      renderTicketActions();
+      renderNotes();
+    }
+
+    function renderTicketActions() {
+      const bar = document.getElementById('ticketActionsBar');
+      let html = '';
+      if (selectedTicket.status === 'open') {
+        html += `<button class="btn btn-primary" onclick="changeStatus('progress')">${t('take_ticket')}</button>`;
+      }
+      if (selectedTicket.status === 'progress') {
+        html += `<button class="btn btn-success" onclick="resolveInTerminal()">&#9654; Résoudre via Terminal</button>`;
+      }
+      if (selectedTicket.status === 'resolved') {
+        html += `<button class="btn btn-outline" onclick="changeStatus('closed')">${t('close_ticket')}</button>`;
+        html += `<button class="btn btn-outline" onclick="changeStatus('open')">${t('reopen_ticket')}</button>`;
+      }
+      bar.innerHTML = html;
+    }
+
+    function ticketToMachine(ticket) {
+      const issue = ticket.issue.toLowerCase();
+      const cat   = ticket.category;
+      if (cat === 'AD/GPO') {
+        if (issue.includes('mot de passe') || issue.includes('expiré'))           return 'password';
+        if (issue.includes('verrouillé') || issue.includes('verrouill'))           return 'locked';
+        if (issue.includes('gpo') || issue.includes('stratégie') || issue.includes('ou incorrecte')) return 'gpo';
+        if (issue.includes('partage') || issue.includes('ntfs'))                  return 'fileshare';
+        return 'srvdc';
+      }
+      if (cat === 'Réseau') {
+        if (issue.includes('vpn'))                                                 return 'vpn';
+        if (issue.includes('dns'))                                                 return 'dns';
+        if (issue.includes('apipa') || issue.includes('dhcp'))                    return 'nointernet';
+        if (issue.includes('imprimante') || issue.includes('spouler'))            return 'printer';
+        if (issue.includes('partage') || issue.includes('srv-files'))             return 'fileshare';
+        if (issue.includes('rdp') || issue.includes('bureau à distance'))         return 'rdp';
+        return 'nointernet';
+      }
+      if (cat === 'Server') {
+        if (issue.includes('dhcp')) return 'srvfiles';
+        return 'srvdc';
+      }
+      if (cat === 'Windows') {
+        if (issue.includes('update') || issue.includes('mise à jour') || issue.includes('kb')) return 'winupdate';
+        if (issue.includes('lent') || issue.includes('cpu'))                      return 'slowpc';
+        if (issue.includes('bsod') || issue.includes('corrompus') || issue.includes('sfc') || issue.includes('dll') || issue.includes('winlogon')) return 'sfc';
+        if (issue.includes('imprimante'))                                          return 'printer';
+        if (issue.includes('rdp') || issue.includes('bureau à distance'))         return 'rdp';
+        return 'normal';
+      }
+      return 'normal';
+    }
+
+    function resolveInTerminal() {
+      if (!selectedTicket) return;
+      const payload = {
+        id:      selectedTicket.id,
+        issue:   selectedTicket.issue,
+        caller:  selectedTicket.caller,
+        dept:    selectedTicket.dept,
+        machine: ticketToMachine(selectedTicket)
+      };
+      localStorage.setItem('it_active_ticket', JSON.stringify(payload));
+      window.location.href = 'terminal.html';
+    }
+
+    function changeStatus(newStatus) {
+      if (!selectedTicket) return;
+      selectedTicket.status = newStatus;
+      if (newStatus === 'progress') selectedTicket.tech = user;
+      const now = new Date();
+      const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+      const statusKey = { open: 'status_open', progress: 'status_in_progress', resolved: 'status_resolved', closed: 'status_closed' };
+      selectedTicket.notes.push({ author: 'Système', date: time, text: t('status_changed') + ' ' + t(statusKey[newStatus]) });
+      saveTickets();
+      openTicketDetail(selectedTicket.id);
+      renderTickets();
+    }
+
+    function renderNotes() {
+      const container = document.getElementById('detailNotes');
+      if (!selectedTicket.notes.length) {
+        container.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">' + t('no_notes') + '</p>';
+        return;
+      }
+      container.innerHTML = selectedTicket.notes.map(n => `
+        <div class="note-item">
+          <div class="note-header">
+            <span class="note-author">${n.author}</span>
+            <span class="note-date">${n.date}</span>
+          </div>
+          <div class="note-body">${n.text}</div>
+        </div>
+      `).join('');
+    }
+
+    // ---- ADD NOTE ----
+    document.getElementById('btnAddNote').addEventListener('click', () => {
+      const input = document.getElementById('noteInput');
+      const text = input.value.trim();
+      if (!text || !selectedTicket) return;
+      const now = new Date();
+      const time = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+      selectedTicket.notes.push({ author: user, date: time, text });
+      saveTickets();
+      input.value = '';
+      renderNotes();
+    });
+
+    // ---- BACK BUTTON ----
+    document.getElementById('btnBackList').addEventListener('click', () => {
+      document.getElementById('ticketDetailPanel').style.display = 'none';
+      selectedTicket = null;
+    });
+
+    // ---- STATUS FILTERS ----
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderTickets();
+      });
+    });
+
+    // ---- CATEGORY PILLS ----
+    document.querySelectorAll('.cat-pill-t').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.cat-pill-t').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        currentCatFilter = pill.dataset.cat;
+        renderTickets();
+      });
+    });
+
+    // ---- PRIORITY FILTER ----
+    document.getElementById('priorityFilter').addEventListener('change', e => {
+      currentPrioFilter = e.target.value;
+      renderTickets();
+    });
+
+    // ---- SEARCH ----
+    document.getElementById('ticketSearch').addEventListener('input', renderTickets);
+
+
+    // ---- INIT ----
+    // Pre-fill search from URL ?q= parameter (e.g. coming from dashboard)
+    const urlQ = new URLSearchParams(window.location.search).get('q');
+    if (urlQ) {
+      document.getElementById('ticketSearch').value = urlQ;
+    }
+    renderTickets();
+
+    // Re-render table on language change
+  </script>
+</body>
+</html>

@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Support Simulator — Entretiens</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .interview-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 24px;
+    }
+    .if-btn {
+      font-size: 12px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .if-btn:hover  { border-color: var(--accent); color: var(--text-primary); }
+    .if-btn.active { border-color: var(--accent); background: rgba(59,130,246,0.12); color: var(--accent); font-weight: 700; }
+
+    .interview-stats {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+    .interview-stats strong { color: var(--text-primary); }
+
+    .interview-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+    .interview-card:hover  { border-color: rgba(59,130,246,0.35); }
+    .interview-card.open   { border-color: var(--accent); }
+    .interview-card.hidden { display: none; }
+
+    .interview-q {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      cursor: pointer;
+      background: var(--bg-card);
+      user-select: none;
+    }
+
+    .iq-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      min-width: 26px;
+      font-family: monospace;
+    }
+
+    .iq-text {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.45;
+      color: var(--text-primary);
+    }
+
+    .iq-badges {
+      display: flex;
+      gap: 5px;
+      flex-shrink: 0;
+      align-items: center;
+    }
+
+    .ib { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+    .ib-n1   { background: rgba(63,185,80,0.15);   color: #3fb950; }
+    .ib-n2   { background: rgba(248,81,73,0.15);   color: #f85149; }
+    .ib-tech { background: rgba(88,166,255,0.12);  color: #58a6ff; }
+    .ib-soft { background: rgba(210,153,34,0.12);  color: #d29922; }
+    .ib-proc { background: rgba(139,92,246,0.12);  color: #a855f7; }
+
+    .iq-arrow {
+      font-size: 10px;
+      color: var(--text-muted);
+      transition: transform 0.2s;
+      flex-shrink: 0;
+    }
+    .interview-card.open .iq-arrow { transform: rotate(180deg); }
+
+    .interview-a {
+      display: none;
+      padding: 18px 20px 18px 54px;
+      border-top: 1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+      font-size: 13px;
+      line-height: 1.75;
+    }
+    .interview-card.open .interview-a { display: block; }
+
+    .ia-intro {
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .ia-points {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 12px;
+    }
+    .ia-points li {
+      padding: 3px 0 3px 18px;
+      position: relative;
+      color: var(--text-secondary);
+    }
+    .ia-points li::before {
+      content: '▸';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-size: 11px;
+      top: 5px;
+    }
+
+    .ia-code {
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #79c0ff;
+      margin: 8px 0;
+      display: block;
+    }
+
+    .ia-tip {
+      background: rgba(59,130,246,0.07);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 6px 6px 0;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 12px;
+    }
+    .ia-tip strong { color: var(--accent); }
+
+    .no-results {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 14px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar-overlay"></div>
+  <div class="app-container">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">IT</div>
+          <div>
+            <span class="logo-text">IT Support</span>
+            <span class="logo-sub">Simulator v1.0</span>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html"><span class="nav-icon">&#9632;</span><span data-i18n="dashboard">Tableau de bord</span></a>
+        <a href="tickets.html"><span class="nav-icon">&#9993;</span><span data-i18n="tickets">Tickets</span></a>
+        <a href="simulation.html"><span class="nav-icon">&#9742;</span><span data-i18n="simulation">Simulation</span></a>
+        <a href="terminal.html"><span class="nav-icon">&#9654;</span><span data-i18n="nav_terminal">Terminal</span></a>
+        <a href="knowledge.html"><span class="nav-icon">&#9733;</span><span data-i18n="knowledge">Base de connaissances</span></a>
+        <a href="entretiens.html" class="active"><span class="nav-icon">&#9998;</span><span data-i18n="interviews">Entretiens</span></a>
+        <a href="quiz.html"><span class="nav-icon">&#9889;</span><span>Quiz</span></a>
+      </nav>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-content">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger">&#9776;</button>
+        </div>
+        <div class="topbar-right">
+          <div class="user-info">
+            <div class="user-avatar">U</div>
+            <span class="user-name">User</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="page-header">
+          <h1>Préparation aux Entretiens</h1>
+          <p>Les questions les plus posées en entretien pour les postes N1 &amp; N2</p>
+        </div>
+
+        <!-- FILTERS -->
+        <div class="interview-filters">
+          <button class="if-btn active" data-cat="all">Toutes <span id="countAll"></span></button>
+          <button class="if-btn" data-cat="réseau">Réseau</button>
+          <button class="if-btn" data-cat="windows">Windows</button>
+          <button class="if-btn" data-cat="ad">AD / GPO</button>
+          <button class="if-btn" data-cat="m365">M365</button>
+          <button class="if-btn" data-cat="sécurité">Sécurité</button>
+          <button class="if-btn" data-cat="comportement">Comportement</button>
+          <button class="if-btn" data-cat="processus">Processus ITSM</button>
+        </div>
+
+        <!-- STATS -->
+        <div class="interview-stats">
+          <span><strong id="visibleCount">45</strong> questions</span>
+          <span>&#9679; <strong style="color:#3fb950">N1</strong> Niveau 1</span>
+          <span>&#9679; <strong style="color:#f85149">N2</strong> Niveau 2</span>
+          <span>&#9679; <strong style="color:#58a6ff">Technique</strong></span>
+          <span>&#9679; <strong style="color:#d29922">Comportement</strong></span>
+          <span>&#9679; <strong style="color:#a855f7">Processus</strong></span>
+        </div>
+
+        <!-- QUESTION LIST -->
+        <div id="interviewList">
+
+          <!-- ══════════════════════════════════════════════ -->
+          <!-- RÉSEAU -->
+          <!-- ══════════════════════════════════════════════ -->
+
+          <div class="interview-card" data-cat="réseau">
+            <div class="interview-q">
+              <span class="iq-num">01</span>
+              <span class="iq-text">Qu'est-ce que le protocole DHCP ? Que se passe-t-il si le serveur DHIPA est indisponible ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Le DHCP (Dynamic Host Configuration Protocol) est un service réseau qui attribue automatiquement une adresse IP, un masque de sous-réseau, une passerelle et des serveurs DNS aux machines du réseau.</p>
+              <ul class="ia-points">
+                <li>Sans DHCP, chaque poste devrait être configuré manuellement en IP statique</li>
+                <li>Si le serveur DHCP est indisponible, le poste reçoit une adresse APIPA : <strong>169.254.x.x</strong></li>
+                <li>Avec une IP APIPA, le poste ne peut plus communiquer avec le réseau ni internet</li>
+                <li>Commande de diagnostic : <code>ipconfig /all</code> puis <code>ipconfig /release</code> &amp; <code>ipconfig /renew</code></li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Mentionner le bail DHCP (lease time) et la notion de scope/étendue montre une bonne maîtrise du sujet.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="réseau">
+            <div class="interview-q">
+              <span class="iq-num">02</span>
+              <span class="iq-text">Un utilisateur a une adresse IP en 169.254.x.x — que signifie-t-elle et comment résoudre ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Une adresse 169.254.x.x est une adresse APIPA (Automatic Private IP Addressing). Le PC n'a pas réussi à obtenir d'adresse via DHCP et s'en est attribué une automatiquement.</p>
+              <ul class="ia-points">
+                <li>Vérifier le câble réseau ou la connexion Wi-Fi</li>
+                <li>Exécuter <code>ipconfig /release</code> puis <code>ipconfig /renew</code></li>
+                <li>Si le problème persiste : vérifier que le service DHCP est actif sur le serveur</li>
+                <li>Vérifier que le port du switch est actif (<code>ping</code> vers la passerelle)</li>
+              </ul>
+              <code class="ia-code">ipconfig /release &amp;&amp; ipconfig /renew</code>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Citer APIPA par son nom et expliquer pourquoi 169.254.x.x est la plage réservée démontre une vraie culture réseau N1.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="réseau">
+            <div class="interview-q">
+              <span class="iq-num">03</span>
+              <span class="iq-text">Qu'est-ce que le DNS ? Comment fonctionne-t-il ? Que se passe-t-il s'il tombe ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Le DNS (Domain Name System) traduit les noms de domaine (google.com) en adresses IP (142.250.x.x). C'est l'annuaire d'Internet.</p>
+              <ul class="ia-points">
+                <li>Sans DNS, les sites web sont inaccessibles par leur nom (mais accessibles par IP directe)</li>
+                <li>En entreprise, le serveur DNS interne résout aussi les noms internes (SRV-DC01, SRV-FILES…)</li>
+                <li>Commandes de diagnostic : <code>nslookup google.com</code>, <code>ipconfig /flushdns</code></li>
+                <li>DNS primaire en entreprise = généralement le contrôleur de domaine (DC)</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Distinguer DNS interne (résolution AD) et DNS externe (résolution internet) est un bon signal de maturité technique.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="réseau">
+            <div class="interview-q">
+              <span class="iq-num">04</span>
+              <span class="iq-text">Quelles commandes utilisez-vous pour diagnostiquer un problème réseau sous Windows ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Le diagnostic réseau suit une logique en couches : de l'interface locale vers l'extérieur.</p>
+              <ul class="ia-points">
+                <li><code>ipconfig /all</code> — vérifie l'adresse IP, masque, passerelle, DNS</li>
+                <li><code>ping 127.0.0.1</code> — vérifie la pile TCP/IP locale</li>
+                <li><code>ping &lt;gateway&gt;</code> — vérifie la connectivité réseau local</li>
+                <li><code>ping 8.8.8.8</code> — vérifie la connectivité internet (sans DNS)</li>
+                <li><code>nslookup google.com</code> — vérifie la résolution DNS</li>
+                <li><code>tracert 8.8.8.8</code> — trace le chemin réseau saut par saut</li>
+                <li><code>netstat -an</code> — liste les connexions actives</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Présenter les commandes dans l'ordre logique (local → réseau → internet → DNS) montre une vraie méthode de diagnostic.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="réseau">
+            <div class="interview-q">
+              <span class="iq-num">05</span>
+              <span class="iq-text">Quelle est la différence entre un hub, un switch et un routeur ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li><strong>Hub</strong> — diffuse les données à tous les ports (couche 1). Obsolète, crée des collisions.</li>
+                <li><strong>Switch</strong> — envoie les données uniquement au port concerné grâce aux adresses MAC (couche 2). Utilisé pour les LAN en entreprise.</li>
+                <li><strong>Routeur</strong> — connecte des réseaux différents (ex : LAN ↔ Internet) et dirige le trafic selon les adresses IP (couche 3).</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Associer chaque équipement à sa couche OSI (1, 2, 3) montre une bonne base réseau même pour un N1.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="réseau">
+            <div class="interview-q">
+              <span class="iq-num">06</span>
+              <span class="iq-text">Expliquez le fonctionnement d'un VPN. Pourquoi l'utilise-t-on en entreprise ?</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Un VPN (Virtual Private Network) crée un tunnel chiffré entre le poste de l'utilisateur et le réseau de l'entreprise, permettant un accès sécurisé depuis l'extérieur.</p>
+              <ul class="ia-points">
+                <li>Le trafic est chiffré : même sur un Wi-Fi public, les données restent protégées</li>
+                <li>L'utilisateur apparaît comme s'il était physiquement dans le réseau interne</li>
+                <li>Protocoles courants : IPSec, SSL/TLS, WireGuard, OpenVPN</li>
+                <li>En entreprise : permet le télétravail et l'accès aux ressources internes (partages, RDP, serveurs)</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Mentionner la différence entre VPN split tunneling (seul le trafic entreprise passe par VPN) et full tunneling (tout le trafic) démontre une bonne maîtrise N2.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="réseau">
+            <div class="interview-q">
+              <span class="iq-num">07</span>
+              <span class="iq-text">Qu'est-ce que le modèle OSI ? Citez les 7 couches.</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Le modèle OSI (Open Systems Interconnection) est un cadre conceptuel en 7 couches qui standardise les communications réseau.</p>
+              <ul class="ia-points">
+                <li><strong>7 — Application</strong> : HTTP, FTP, DNS, SMTP</li>
+                <li><strong>6 — Présentation</strong> : Chiffrement SSL/TLS, encodage</li>
+                <li><strong>5 — Session</strong> : Gestion des sessions (NetBIOS, RPC)</li>
+                <li><strong>4 — Transport</strong> : TCP (fiable) / UDP (rapide)</li>
+                <li><strong>3 — Réseau</strong> : IP, routage (routeur)</li>
+                <li><strong>2 — Liaison</strong> : MAC, Ethernet (switch)</li>
+                <li><strong>1 — Physique</strong> : Câbles, Wi-Fi, signaux électriques (hub)</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 Moyen mémo :</strong> « <strong>A</strong>h <strong>P</strong>our <strong>S</strong>avoir <strong>T</strong>raiter <strong>R</strong>éseau <strong>L</strong>a <strong>P</strong>hysique » (de 7 à 1).</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="réseau">
+            <div class="interview-q">
+              <span class="iq-num">08</span>
+              <span class="iq-text">Quelle est la différence entre TCP et UDP ?</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li><strong>TCP</strong> (Transmission Control Protocol) : connexion établie (handshake 3 voies), transmission fiable, accusé de réception, ordre garanti. Utilisé pour HTTP, FTP, e-mails.</li>
+                <li><strong>UDP</strong> (User Datagram Protocol) : pas de connexion, plus rapide, pas de garantie de livraison. Utilisé pour streaming, VoIP, DNS, jeux en ligne.</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Donner des exemples concrets (Teams/Visio sur UDP, transfert de fichiers sur TCP) ancre votre réponse dans le réel.</div>
+            </div>
+          </div>
+
+          <!-- ══════════════════════════════════════════════ -->
+          <!-- WINDOWS -->
+          <!-- ══════════════════════════════════════════════ -->
+
+          <div class="interview-card" data-cat="windows">
+            <div class="interview-q">
+              <span class="iq-num">09</span>
+              <span class="iq-text">Un utilisateur ne peut plus ouvrir sa session Windows — quelles sont vos premières actions ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Commencer par les causes les plus fréquentes avant d'escalader.</p>
+              <ul class="ia-points">
+                <li>Vérifier si le mot de passe est expiré (message d'erreur à l'écran)</li>
+                <li>Vérifier si le compte AD est verrouillé (trop de tentatives échouées)</li>
+                <li>Vérifier la connectivité réseau — un PC hors domaine ne peut pas authentifier</li>
+                <li>Vérifier si le profil utilisateur est corrompu (connexion avec un compte local test)</li>
+                <li>En dernier recours : mode sans échec, réparation du profil ou recréation</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Structurer votre réponse en ordre de priorité (fréquence d'occurrence) montre une vraie expérience terrain N1.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="windows">
+            <div class="interview-q">
+              <span class="iq-num">10</span>
+              <span class="iq-text">Qu'est-ce qu'un BSOD ? Comment l'analysez-vous ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Le BSOD (Blue Screen of Death) est un écran d'erreur critique Windows causé par un problème matériel ou un pilote défaillant. Windows s'arrête pour éviter des dommages.</p>
+              <ul class="ia-points">
+                <li>Relever le code d'erreur affiché (ex : CRITICAL_PROCESS_DIED, PAGE_FAULT_IN_NONPAGED_AREA)</li>
+                <li>Vérifier l'Observateur d'événements (eventvwr) → Journal Windows → Système</li>
+                <li>Analyser le fichier dump mémoire avec WhoCrashed ou WinDbg</li>
+                <li>Causes fréquentes : RAM défectueuse, pilote corrompu, disque défaillant, surchauffe</li>
+                <li>Commandes utiles : <code>sfc /scannow</code>, <code>chkdsk C: /f</code>, <code>mdsched.exe</code></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="windows">
+            <div class="interview-q">
+              <span class="iq-num">11</span>
+              <span class="iq-text">Comment libérer de l'espace disque sur Windows sans supprimer de données utilisateur ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li><code>cleanmgr</code> — Nettoyage de disque Windows (fichiers temp, corbeille, miniatures)</li>
+                <li>Supprimer les anciennes mises à jour Windows : <code>cleanmgr /sageset:1</code> → cocher "Nettoyage Windows Update"</li>
+                <li>Supprimer le dossier <code>Windows.old</code> (après une mise à niveau, peut peser 8–15 Go)</li>
+                <li>Désactiver/réduire l'hibernation : <code>powercfg -h off</code></li>
+                <li>Vider le dossier <code>%temp%</code> et <code>C:\Windows\Temp</code></li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Mentionner que vous ne supprimez jamais de fichiers utilisateur sans autorisation préalable montre du professionnalisme.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="windows">
+            <div class="interview-q">
+              <span class="iq-num">12</span>
+              <span class="iq-text">Quelle est la différence entre RAM et disque dur ? Quel impact sur les performances ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li><strong>RAM</strong> : mémoire volatile, rapide, contient les données en cours d'utilisation (programmes ouverts). Perdue au redémarrage.</li>
+                <li><strong>Disque dur / SSD</strong> : stockage permanent, contient l'OS et les fichiers. Le SSD est beaucoup plus rapide qu'un HDD.</li>
+                <li>PC lent : RAM saturée → Windows utilise le fichier d'échange sur disque (très lent)</li>
+                <li>Diagnostic : Gestionnaire des tâches → onglet Performance</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="windows">
+            <div class="interview-q">
+              <span class="iq-num">13</span>
+              <span class="iq-text">À quoi sert <code>sfc /scannow</code> ? Quelle est la différence avec DISM ?</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li><strong>SFC</strong> (System File Checker) : analyse et répare les fichiers système Windows corrompus en les remplaçant depuis le cache local.</li>
+                <li>Si SFC échoue ou trouve des erreurs non réparables, le cache local est lui-même corrompu.</li>
+                <li><strong>DISM</strong> (Deployment Image Servicing and Management) : répare l'image Windows elle-même en téléchargeant les fichiers depuis Windows Update.</li>
+                <li>Ordre recommandé : DISM d'abord → puis SFC</li>
+              </ul>
+              <code class="ia-code">DISM /Online /Cleanup-Image /RestoreHealth
+sfc /scannow</code>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Expliquer l'ordre logique (DISM répare la source, SFC répare les fichiers) montre une compréhension N2 solide.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="windows">
+            <div class="interview-q">
+              <span class="iq-num">14</span>
+              <span class="iq-text">Comment analyser les logs Windows pour diagnostiquer un problème ?</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li>Ouvrir l'Observateur d'événements : <code>eventvwr.msc</code></li>
+                <li>Journaux Windows → Système : erreurs matérielles, services, drivers</li>
+                <li>Journaux Windows → Application : erreurs applicatives</li>
+                <li>Journaux Windows → Sécurité : connexions réussies/échouées, verrouillages</li>
+                <li>Filtrer par niveau (Critique, Erreur) et par période pour cibler le problème</li>
+                <li>ID d'événement utiles : 4625 (échec connexion), 6008 (arrêt inattendu), 41 (reboot brutal)</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="windows">
+            <div class="interview-q">
+              <span class="iq-num">15</span>
+              <span class="iq-text">Comment gérez-vous les mises à jour Windows en entreprise ?</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li>En entreprise, les mises à jour sont gérées centralement via <strong>WSUS</strong> (Windows Server Update Services) ou <strong>Intune</strong></li>
+                <li>WSUS permet de tester les mises à jour avant déploiement sur l'ensemble du parc</li>
+                <li>Les redémarrages sont planifiés en dehors des heures de travail via GPO</li>
+                <li>En cas de mise à jour problématique : possibilité de la bloquer ou de la désinstaller</li>
+                <li>Commande utile : <code>wuauclt /detectnow</code> ou <code>usoclient StartScan</code></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="windows">
+            <div class="interview-q">
+              <span class="iq-num">16</span>
+              <span class="iq-text">Qu'est-ce que le Registre Windows ? Quand y accédez-vous en support ?</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Le Registre Windows est une base de données hiérarchique qui stocke les paramètres de configuration du système, des applications et des utilisateurs.</p>
+              <ul class="ia-points">
+                <li>Accès via <code>regedit</code></li>
+                <li>Ruches principales : HKLM (machine), HKCU (utilisateur courant), HKCR (types de fichiers)</li>
+                <li>Cas d'usage support : corriger une clé de démarrage, supprimer une entrée de logiciel résiduelle, modifier un paramètre non exposé dans l'interface</li>
+                <li><strong>Toujours exporter une sauvegarde avant toute modification</strong></li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Mentionner spontanément la précaution de sauvegarde avant modification rassure l'employeur sur votre rigueur.</div>
+            </div>
+          </div>
+
+          <!-- ══════════════════════════════════════════════ -->
+          <!-- ACTIVE DIRECTORY / GPO -->
+          <!-- ══════════════════════════════════════════════ -->
+
+          <div class="interview-card" data-cat="ad">
+            <div class="interview-q">
+              <span class="iq-num">17</span>
+              <span class="iq-text">Qu'est-ce qu'Active Directory ? À quoi sert-il en entreprise ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Active Directory (AD) est un service d'annuaire Microsoft qui centralise la gestion des identités, des ordinateurs et des ressources d'une entreprise.</p>
+              <ul class="ia-points">
+                <li>Gestion centralisée des comptes utilisateurs et mots de passe</li>
+                <li>Contrôle des accès aux ressources (fichiers, imprimantes, applications)</li>
+                <li>Application des stratégies de sécurité via GPO</li>
+                <li>Authentification unique (SSO) : un seul identifiant pour tous les services</li>
+                <li>Structure : Forêt → Domaine → Unités d'Organisation (OU) → Objets</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Nommer les outils d'administration (ADUC — dsa.msc, ADAC) montre que vous avez pratiqué et pas seulement lu la théorie.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="ad">
+            <div class="interview-q">
+              <span class="iq-num">18</span>
+              <span class="iq-text">Comment réinitialiser le mot de passe d'un utilisateur AD ? Et déverrouiller un compte ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li>Ouvrir <strong>Utilisateurs et ordinateurs Active Directory</strong> (<code>dsa.msc</code>)</li>
+                <li>Rechercher l'utilisateur → clic droit → <strong>Réinitialiser le mot de passe</strong></li>
+                <li>Cocher « L'utilisateur doit changer le mot de passe à la prochaine connexion »</li>
+                <li>Pour déverrouiller : clic droit → Propriétés → onglet Compte → décocher « Le compte est verrouillé »</li>
+                <li>Via PowerShell : <code>Unlock-ADAccount -Identity prenom.nom</code></li>
+                <li>Identifier la source du verrouillage : outil <strong>LockoutStatus</strong> ou Event ID 4740</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Parler de l'outil LockoutStatus et de l'Event ID 4740 pour trouver la source du verrouillage différencie un bon N1 d'un N1 basique.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="ad">
+            <div class="interview-q">
+              <span class="iq-num">19</span>
+              <span class="iq-text">Quelle est la différence entre un compte local et un compte de domaine ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li><strong>Compte local</strong> : existe uniquement sur le PC, pas de lien avec AD, pas de SSO, géré localement</li>
+                <li><strong>Compte de domaine</strong> : centralisé dans AD, accessible depuis n'importe quel PC du domaine, soumis aux GPO et aux politiques de mot de passe centrales</li>
+                <li>En entreprise : les utilisateurs ont un compte de domaine. Le compte local Administrator est souvent désactivé ou renommé pour la sécurité.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="ad">
+            <div class="interview-q">
+              <span class="iq-num">20</span>
+              <span class="iq-text">Qu'est-ce qu'une OU (Unité d'Organisation) ? Donnez un exemple concret.</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Une OU est un conteneur dans AD qui permet d'organiser les objets (utilisateurs, ordinateurs, groupes) et d'y appliquer des GPO ciblées.</p>
+              <ul class="ia-points">
+                <li>Exemple : OU=Comptabilité, OU=Marketing, OU=Direction</li>
+                <li>Chaque OU peut avoir ses propres GPO (ex : restriction d'accès pour les stagiaires)</li>
+                <li>Les OU peuvent être imbriquées : OU=France → OU=Paris → OU=Comptabilité</li>
+                <li>Déplacer un objet dans la mauvaise OU → mauvaises GPO appliquées → problèmes accès</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="ad">
+            <div class="interview-q">
+              <span class="iq-num">21</span>
+              <span class="iq-text">Qu'est-ce qu'une GPO ? Comment est-elle appliquée ? Quelle commande force son application ?</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Une GPO (Group Policy Object) est un ensemble de règles appliquées à des utilisateurs ou ordinateurs via Active Directory pour configurer et sécuriser l'environnement.</p>
+              <ul class="ia-points">
+                <li>Appliquée au démarrage (ordinateur) ou à la connexion (utilisateur)</li>
+                <li>Ordre d'application : Local → Site → Domaine → OU (LSDOU)</li>
+                <li>Forcer l'application immédiate : <code>gpupdate /force</code></li>
+                <li>Diagnostiquer ce qui est appliqué : <code>gpresult /r</code> ou <code>gpresult /h rapport.html</code></li>
+              </ul>
+              <code class="ia-code">gpupdate /force
+gpresult /r</code>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Citer l'ordre LSDOU et <code>gpresult /h</code> pour générer un rapport HTML montre une maîtrise GPO au-delà du basique.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="ad">
+            <div class="interview-q">
+              <span class="iq-num">22</span>
+              <span class="iq-text">Qu'est-ce que Kerberos ? Comment fonctionne l'authentification dans un domaine AD ?</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Kerberos est le protocole d'authentification par défaut dans un domaine Windows Active Directory. Il utilise des tickets pour prouver l'identité sans retransmettre le mot de passe.</p>
+              <ul class="ia-points">
+                <li>L'utilisateur s'authentifie auprès du KDC (Key Distribution Center) sur le DC</li>
+                <li>Il reçoit un TGT (Ticket Granting Ticket) valide plusieurs heures</li>
+                <li>À chaque accès à une ressource, il échange son TGT contre un ticket de service</li>
+                <li>Le mot de passe ne circule jamais sur le réseau</li>
+                <li>Si Kerberos échoue, Windows repasse sur NTLM (moins sécurisé)</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="ad">
+            <div class="interview-q">
+              <span class="iq-num">23</span>
+              <span class="iq-text">Qu'est-ce qu'Azure AD Connect ? Pourquoi synchroniser l'AD local avec Azure AD ?</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Azure AD Connect est l'outil qui synchronise les identités entre l'Active Directory on-premise et Azure Active Directory (cloud Microsoft).</p>
+              <ul class="ia-points">
+                <li>Permet à l'utilisateur d'utiliser le même identifiant pour les ressources locales ET cloud (M365, Azure)</li>
+                <li>Synchronisation par défaut toutes les 30 minutes</li>
+                <li>Si la synchro est en échec : les nouveaux comptes créés en local n'apparaissent pas dans M365</li>
+                <li>Diagnostic : portail Azure AD → Santé de la synchronisation</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- ══════════════════════════════════════════════ -->
+          <!-- M365 -->
+          <!-- ══════════════════════════════════════════════ -->
+
+          <div class="interview-card" data-cat="m365">
+            <div class="interview-q">
+              <span class="iq-num">24</span>
+              <span class="iq-text">Un utilisateur ne reçoit plus ses e-mails dans Outlook — quelles sont les étapes de diagnostic ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li>Vérifier la connexion internet et l'accès à office.com via navigateur</li>
+                <li>Vérifier le statut d'Outlook en bas à droite (« Connecté » / « Déconnecté »)</li>
+                <li>Tenter un envoyer/recevoir manuel (F9)</li>
+                <li>Vérifier si la boîte mail est pleine (quota 50 Go)</li>
+                <li>Réparer le profil Outlook : Panneau de config → Courrier → Afficher les profils</li>
+                <li>Vérifier si la licence M365 est active dans le portail admin</li>
+                <li>Recréer le profil Outlook si rien ne fonctionne</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="m365">
+            <div class="interview-q">
+              <span class="iq-num">25</span>
+              <span class="iq-text">OneDrive ne se synchronise plus (icône rouge) — comment diagnostiquer ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li>Cliquer sur l'icône OneDrive dans la barre des tâches → lire le message d'erreur</li>
+                <li>Codes fréquents : 0x8004de40 (problème connexion), 0x80070005 (droits), quota dépassé</li>
+                <li>Vérifier l'espace disponible dans OneDrive (limite selon licence)</li>
+                <li>Déconnecter et reconnecter le compte OneDrive</li>
+                <li>Réinitialiser OneDrive : <code>%localappdata%\Microsoft\OneDrive\onedrive.exe /reset</code></li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Savoir lire les codes d'erreur OneDrive et proposer une réinitialisation propre démontre une bonne expérience M365 N1.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="m365">
+            <div class="interview-q">
+              <span class="iq-num">26</span>
+              <span class="iq-text">Qu'est-ce que la MFA ? Comment l'activer pour un utilisateur M365 ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">La MFA (Multi-Factor Authentication) est une authentification à deux facteurs : en plus du mot de passe, l'utilisateur doit valider sa connexion via un second facteur (SMS, application Authenticator, appel).</p>
+              <ul class="ia-points">
+                <li>Protection contre les attaques par mot de passe compromis</li>
+                <li>Activation : Portail Microsoft 365 admin → Utilisateurs → Authentification multifacteur</li>
+                <li>Application recommandée : Microsoft Authenticator (notification push)</li>
+                <li>Si l'utilisateur a changé de téléphone : réinitialiser ses méthodes MFA dans le portail</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="m365">
+            <div class="interview-q">
+              <span class="iq-num">27</span>
+              <span class="iq-text">Comment attribuer ou modifier une licence M365 à un utilisateur ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li>Se connecter au centre d'administration M365 : admin.microsoft.com</li>
+                <li>Utilisateurs → Utilisateurs actifs → sélectionner l'utilisateur</li>
+                <li>Onglet « Licences et applications » → cocher/décocher la licence souhaitée</li>
+                <li>Les applications disponibles dépendent de la licence (E1 / E3 / E5 / Business)</li>
+                <li>Si aucune licence disponible : contacter le responsable pour achat supplémentaire</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="m365">
+            <div class="interview-q">
+              <span class="iq-num">28</span>
+              <span class="iq-text">Qu'est-ce que SharePoint ? Un utilisateur reçoit une erreur 403 — pourquoi ?</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">SharePoint est la plateforme de collaboration et de partage de documents M365. L'erreur 403 signifie « Accès refusé ».</p>
+              <ul class="ia-points">
+                <li>L'utilisateur n'est pas membre du site ou du groupe SharePoint correspondant</li>
+                <li>Résolution : l'administrateur du site doit ajouter l'utilisateur dans les permissions du site</li>
+                <li>Vérifier aussi si l'accès conditionnel Azure AD (Conditional Access) bloque la connexion</li>
+                <li>Accès SharePoint Admin : admin.microsoft.com → SharePoint → Sites</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- ══════════════════════════════════════════════ -->
+          <!-- SÉCURITÉ -->
+          <!-- ══════════════════════════════════════════════ -->
+
+          <div class="interview-card" data-cat="sécurité">
+            <div class="interview-q">
+              <span class="iq-num">29</span>
+              <span class="iq-text">Un utilisateur signale avoir reçu un e-mail de phishing — que faites-vous ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li>Demander à l'utilisateur de <strong>ne pas cliquer</strong> et de <strong>ne pas transférer</strong> le mail</li>
+                <li>Si un lien a été cliqué : isoler immédiatement le poste du réseau</li>
+                <li>Analyser le mail : domaine expéditeur, liens, pièces jointes</li>
+                <li>Bloquer le domaine expéditeur dans Exchange / M365</li>
+                <li>Vérifier si d'autres utilisateurs ont reçu le même mail (campagne de phishing)</li>
+                <li>Signaler à l'équipe sécurité / RSSI si campagne confirmée</li>
+                <li>Envoyer une alerte préventive aux utilisateurs</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Mentionner l'isolement du poste si lien cliqué ET la communication interne d'alerte montre un réflexe sécurité mature.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="sécurité">
+            <div class="interview-q">
+              <span class="iq-num">30</span>
+              <span class="iq-text">Des fichiers ont été renommés avec l'extension .locked — qu'est-ce que c'est et que faites-vous ?</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">C'est un ransomware — les fichiers ont été chiffrés par un malware qui demande une rançon pour les déchiffrer.</p>
+              <ul class="ia-points">
+                <li><strong>Immédiatement</strong> : débrancher physiquement le câble réseau / désactiver le Wi-Fi</li>
+                <li>Isoler le poste pour éviter la propagation aux partages réseau et aux autres postes</li>
+                <li>Ne jamais payer la rançon (aucune garantie de récupération)</li>
+                <li>Informer immédiatement le RSSI et la direction</li>
+                <li>Identifier le type de ransomware (id-ransomware.malwarehunterteam.com)</li>
+                <li>Restaurer les fichiers depuis les sauvegardes</li>
+                <li>Analyser le vecteur d'entrée pour éviter la récidive</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> L'isolation immédiate est LA priorité absolue. Nommer le RSSI et les sauvegardes montre que vous pensez en termes de continuité d'activité.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="sécurité">
+            <div class="interview-q">
+              <span class="iq-num">31</span>
+              <span class="iq-text">Qu'est-ce que le principe du moindre privilège ? Pourquoi est-il important ?</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Le principe du moindre privilège signifie qu'un utilisateur ou un système ne doit avoir que les droits strictement nécessaires à l'exécution de ses tâches, rien de plus.</p>
+              <ul class="ia-points">
+                <li>Un utilisateur comptable n'a pas besoin d'accéder aux fichiers RH</li>
+                <li>Réduit la surface d'attaque : un compte compromis fait moins de dégâts</li>
+                <li>Appliqué via : permissions NTFS, groupes AD, rôles M365, droits sudo/admin locaux</li>
+                <li>Les administrateurs doivent utiliser un compte standard au quotidien et un compte admin uniquement pour les tâches d'administration</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="sécurité">
+            <div class="interview-q">
+              <span class="iq-num">32</span>
+              <span class="iq-text">Quelle est la différence entre un antivirus et un EDR ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li><strong>Antivirus</strong> : détection par signatures (base de virus connus), protection réactive, analyse fichiers</li>
+                <li><strong>EDR</strong> (Endpoint Detection and Response) : surveille les comportements suspects en temps réel, détecte les menaces inconnues (zero-day), permet investigation et réponse à incident</li>
+                <li>Exemples EDR : Microsoft Defender for Endpoint, CrowdStrike, SentinelOne</li>
+                <li>En entreprise moderne, l'EDR remplace ou complète l'antivirus traditionnel</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="sécurité">
+            <div class="interview-q">
+              <span class="iq-num">33</span>
+              <span class="iq-text">Qu'est-ce qu'une attaque par force brute sur un compte AD ? Comment s'en protéger ?</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-tech">Technique</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Une attaque par force brute consiste à tester automatiquement un grand nombre de mots de passe pour accéder à un compte.</p>
+              <ul class="ia-points">
+                <li>Détection : Event ID 4625 (échecs de connexion répétés) dans les logs de sécurité AD</li>
+                <li>Protection : politique de verrouillage de compte (ex : 5 tentatives → verrouillage 30 min)</li>
+                <li>MFA rend l'attaque par force brute presque inefficace</li>
+                <li>Fine-Grained Password Policy pour des politiques différentes selon les groupes (ex : comptes de service)</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- ══════════════════════════════════════════════ -->
+          <!-- COMPORTEMENT -->
+          <!-- ══════════════════════════════════════════════ -->
+
+          <div class="interview-card" data-cat="comportement">
+            <div class="interview-q">
+              <span class="iq-num">34</span>
+              <span class="iq-text">Un utilisateur est en colère au téléphone — comment gérez-vous la situation ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-soft">Comportement</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li>Rester calme et professionnel, ne jamais répondre à l'agressivité par l'agressivité</li>
+                <li>Laisser l'utilisateur s'exprimer sans l'interrompre (écoute active)</li>
+                <li>Reformuler le problème pour montrer que vous avez compris : « Je comprends que vous ne pouvez plus travailler depuis ce matin... »</li>
+                <li>Se concentrer sur la solution, pas sur l'émotion : « Voici ce que je vais faire pour vous... »</li>
+                <li>Si l'utilisateur reste irrespectueux : indiquer calmement que vous êtes là pour aider mais que vous ne pouvez pas continuer dans ces conditions</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Montrer de l'empathie tout en restant orienté solution est exactement ce que les recruteurs cherchent pour un poste helpdesk.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="comportement">
+            <div class="interview-q">
+              <span class="iq-num">35</span>
+              <span class="iq-text">Vous avez 3 tickets critiques ouverts en même temps — comment priorisez-vous ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-soft">Comportement</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li>Évaluer l'impact métier de chaque ticket : combien d'utilisateurs bloqués ? Quelle activité impactée ?</li>
+                <li>Un serveur en panne qui bloque 50 personnes prime sur un PC individuel bloqué</li>
+                <li>Vérifier les SLA associés : un ticket dont le SLA expire dans 15 min monte en priorité</li>
+                <li>Informer immédiatement les utilisateurs du délai de prise en charge</li>
+                <li>Si nécessaire : escalader un ticket à un collègue ou N2 pour ne pas tout bloquer</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Mentionner la communication aux utilisateurs ET l'escalade montre que vous pensez à l'expérience globale, pas seulement à la résolution technique.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="comportement">
+            <div class="interview-q">
+              <span class="iq-num">36</span>
+              <span class="iq-text">Comment expliquez-vous un problème technique à un utilisateur non technique ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-soft">Comportement</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li>Utiliser des analogies du quotidien (ex : « Le DHCP c'est comme un hôtel qui attribue une chambre numérotée à chaque client »)</li>
+                <li>Éviter le jargon technique — si nécessaire, définir chaque terme</li>
+                <li>Se concentrer sur l'impact et la solution, pas sur la cause technique</li>
+                <li>Vérifier la compréhension en posant des questions ouvertes</li>
+                <li>Laisser du temps pour les questions</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Avoir un exemple concret prêt (« J'ai expliqué X en disant... ») est bien plus convaincant qu'une réponse théorique.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="comportement">
+            <div class="interview-q">
+              <span class="iq-num">37</span>
+              <span class="iq-text">Que faites-vous quand vous ne connaissez pas la solution à un problème ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-soft">Comportement</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li>Être honnête avec l'utilisateur : « Je ne connais pas la solution immédiate, mais je vais trouver »</li>
+                <li>Consulter la base de connaissances interne et les procédures documentées</li>
+                <li>Rechercher dans des sources fiables (documentation Microsoft, forums techniques)</li>
+                <li>Demander l'aide d'un collègue ou escalader vers le N2 si nécessaire</li>
+                <li>Documenter la solution trouvée pour les prochaines occurrences</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Montrer que vous savez quand escalader est une qualité — le pire technicien est celui qui bloque pendant des heures sans demander d'aide.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="comportement">
+            <div class="interview-q">
+              <span class="iq-num">38</span>
+              <span class="iq-text">Pourquoi voulez-vous travailler en support IT N1/N2 ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-soft">Comportement</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Réponse-cadre à personnaliser selon votre parcours :</p>
+              <ul class="ia-points">
+                <li>Montrer une passion réelle pour la résolution de problèmes techniques</li>
+                <li>Mettre en avant le contact humain et l'aide concrète apportée aux utilisateurs</li>
+                <li>Parler de la progression possible : N1 → N2 → spécialisation (réseau, sécurité, cloud)</li>
+                <li>Relier à des expériences concrètes : projets personnels, formations, certifications</li>
+                <li>Mentionner l'environnement de l'entreprise si vous connaissez ses outils (GLPI, AD, M365)</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Évitez « parce que j'aime l'informatique » — tout le monde dit ça. Soyez spécifique : quel aspect du support vous motive vraiment ?</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="comportement">
+            <div class="interview-q">
+              <span class="iq-num">39</span>
+              <span class="iq-text">Comment gérez-vous le stress en période de forte charge de tickets ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-soft">Comportement</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li>Prioriser par impact/urgence pour ne pas être paralysé par le volume</li>
+                <li>Faire des mises à jour régulières aux utilisateurs en attente (même courtes)</li>
+                <li>Identifier les tickets répétitifs → créer une procédure ou un script pour les traiter plus vite</li>
+                <li>Communiquer avec le manager si la charge est intenable seul</li>
+                <li>Garder un suivi clair (ticket ouvert / en cours / en attente) pour ne rien perdre</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="comportement">
+            <div class="interview-q">
+              <span class="iq-num">40</span>
+              <span class="iq-text">Décrivez une situation difficile que vous avez résolue en support IT.</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-soft">Comportement</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Utilisez la méthode STAR : Situation, Tâche, Action, Résultat.</p>
+              <ul class="ia-points">
+                <li><strong>Situation</strong> : décrivez le contexte (ex : panne serveur un lundi matin, 30 utilisateurs bloqués)</li>
+                <li><strong>Tâche</strong> : quel était votre rôle et vos responsabilités dans cette situation</li>
+                <li><strong>Action</strong> : détaillez les étapes précises que vous avez prises (diagnostic, escalade, communication)</li>
+                <li><strong>Résultat</strong> : quel a été l'impact positif concret (temps de résolution, utilisateurs débloqués, incident évité)</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Préparez 2-3 anecdotes STAR en amont. Les recruteurs N2 adorent les exemples concrets avec des chiffres (« résolu en 45 min, 0 donnée perdue »).</div>
+            </div>
+          </div>
+
+          <!-- ══════════════════════════════════════════════ -->
+          <!-- PROCESSUS ITSM -->
+          <!-- ══════════════════════════════════════════════ -->
+
+          <div class="interview-card" data-cat="processus">
+            <div class="interview-q">
+              <span class="iq-num">41</span>
+              <span class="iq-text">Qu'est-ce qu'un SLA ? Pourquoi est-il important en support IT ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-proc">Processus</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Un SLA (Service Level Agreement) est un contrat qui définit les engagements de qualité et de délai de traitement entre l'équipe IT et les utilisateurs/métiers.</p>
+              <ul class="ia-points">
+                <li>Définit les délais de prise en charge et de résolution selon la priorité (ex : critique → 1h, haute → 4h, normale → 24h)</li>
+                <li>Permet de mesurer la performance du support IT objectivement</li>
+                <li>Un SLA breach = l'équipe n'a pas respecté son engagement → impact sur la satisfaction et potentiellement sur les pénalités contractuelles</li>
+                <li>Outil de gestion : les outils de ticketing (GLPI, ServiceNow) alertent avant le dépassement</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="processus">
+            <div class="interview-q">
+              <span class="iq-num">42</span>
+              <span class="iq-text">Quelle est la différence entre un incident et une demande de service ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-proc">Processus</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <ul class="ia-points">
+                <li><strong>Incident</strong> : interruption non planifiée ou dégradation d'un service. Objectif : restaurer le service le plus vite possible. Ex : PC qui ne démarre plus, réseau en panne.</li>
+                <li><strong>Demande de service</strong> : requête standard prévisible faite par un utilisateur. Ex : création d'un compte, installation d'un logiciel, attribution d'un droit.</li>
+                <li>Dans ITIL, la gestion des incidents et la gestion des demandes sont deux processus distincts avec des workflows différents</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Cette distinction ITIL est très fréquemment posée — la connaître parfaitement montre une vraie culture ITSM.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="processus">
+            <div class="interview-q">
+              <span class="iq-num">43</span>
+              <span class="iq-text">Qu'est-ce que l'escalade d'un ticket ? Quand et comment l'utilisez-vous ?</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-proc">Processus</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">L'escalade consiste à transférer un ticket vers un niveau de support supérieur (N1 → N2 → N3) ou vers un expert spécialisé lorsque le niveau actuel ne peut pas résoudre le problème.</p>
+              <ul class="ia-points">
+                <li>Escalade fonctionnelle : transfert vers un niveau technique supérieur</li>
+                <li>Escalade hiérarchique : le problème dépasse le périmètre technique (décision managériale nécessaire)</li>
+                <li>Quand escalader : problème hors de votre périmètre, dépassement du SLA imminent, impact critique non résolu</li>
+                <li>Comment : documenter précisément le problème, les actions déjà tentées et les résultats dans le ticket avant de transférer</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Préciser que vous documentez le ticket AVANT d'escalader (pour que le N2 ne reparte pas de zéro) est un vrai signe de professionnalisme.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="processus">
+            <div class="interview-q">
+              <span class="iq-num">44</span>
+              <span class="iq-text">Qu'est-ce qu'ITIL ? Quels processus connaissez-vous ?</span>
+              <div class="iq-badges"><span class="ib ib-n2">N2</span><span class="ib ib-proc">Processus</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">ITIL (Information Technology Infrastructure Library) est un cadre de bonnes pratiques pour la gestion des services IT. Il définit des processus standardisés pour aligner l'IT sur les besoins métier.</p>
+              <ul class="ia-points">
+                <li><strong>Gestion des incidents</strong> : restaurer le service rapidement</li>
+                <li><strong>Gestion des problèmes</strong> : trouver et éliminer la cause racine des incidents récurrents</li>
+                <li><strong>Gestion des changements</strong> : contrôler les modifications en production</li>
+                <li><strong>Gestion des demandes</strong> : traiter les requêtes standard</li>
+                <li><strong>Gestion des actifs</strong> : inventaire du parc matériel/logiciel</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Pour un N1/N2, connaître la différence incident/problème/changement est suffisant. Ne pas prétendre être expert ITIL si vous n'avez pas la certification Foundation.</div>
+            </div>
+          </div>
+
+          <div class="interview-card" data-cat="processus">
+            <div class="interview-q">
+              <span class="iq-num">45</span>
+              <span class="iq-text">Avez-vous utilisé un outil de ticketing ? Décrivez votre expérience avec GLPI, ServiceNow ou Jira.</span>
+              <div class="iq-badges"><span class="ib ib-n1">N1</span><span class="ib ib-proc">Processus</span></div>
+              <span class="iq-arrow">▼</span>
+            </div>
+            <div class="interview-a">
+              <p class="ia-intro">Cadre de réponse à adapter selon votre expérience :</p>
+              <ul class="ia-points">
+                <li><strong>GLPI</strong> : open-source, très utilisé en France, gestion tickets + inventaire + CMDB. Fonctionnalités : catégories, priorités, SLA, base de connaissances.</li>
+                <li><strong>ServiceNow</strong> : solution enterprise premium, workflows avancés, ITIL natif. Standard dans les grandes entreprises.</li>
+                <li><strong>Jira Service Management</strong> : populaire dans les équipes agiles et DSI modernes.</li>
+                <li>Même sans expérience pro : ce simulateur IT vous permet de pratiquer la gestion de tickets avec une interface GLPI-like — mentionnez-le !</li>
+              </ul>
+              <div class="ia-tip"><strong>💡 En entretien :</strong> Si vous n'avez pas d'expérience pro, montrez que vous connaissez les concepts (cycle de vie du ticket, SLA, escalade) — c'est ce qui compte pour un premier poste N1.</div>
+            </div>
+          </div>
+
+        </div><!-- /interviewList -->
+
+        <div class="no-results" id="noResults">Aucune question trouvée pour cette catégorie.</div>
+
+      </div>
+
+      <footer class="app-footer">
+        <span data-i18n="footer">IT Support Simulator — Plateforme d'apprentissage</span>
+      </footer>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    // ---- USER ----
+    const user = localStorage.getItem('user') || 'User';
+    document.querySelector('.user-avatar').textContent = user.charAt(0).toUpperCase();
+    document.querySelector('.user-name').textContent = user;
+
+    // ---- ACCORDION ----
+    document.querySelectorAll('.interview-q').forEach(q => {
+      q.addEventListener('click', () => {
+        const card = q.closest('.interview-card');
+        const wasOpen = card.classList.contains('open');
+        // Close all
+        document.querySelectorAll('.interview-card').forEach(c => c.classList.remove('open'));
+        // Toggle clicked
+        if (!wasOpen) card.classList.add('open');
+      });
+    });
+
+    // ---- FILTERS ----
+    const allCards = document.querySelectorAll('.interview-card');
+
+    function updateCount() {
+      const visible = [...allCards].filter(c => !c.classList.contains('hidden')).length;
+      document.getElementById('visibleCount').textContent = visible;
+      document.getElementById('noResults').style.display = visible === 0 ? 'block' : 'none';
+    }
+
+    document.querySelectorAll('.if-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.if-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const cat = btn.dataset.cat;
+        allCards.forEach(card => {
+          const match = cat === 'all' || card.dataset.cat === cat;
+          card.classList.toggle('hidden', !match);
+          if (!match) card.classList.remove('open');
+        });
+        updateCount();
+      });
+    });
+
+    updateCount();
+  </script>
+</body>
+</html>

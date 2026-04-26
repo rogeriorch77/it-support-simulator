@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IT Support Simulator N1/N2 — Classement</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; }
+
+    /* ── Header ── */
+    .land-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 40px; border-bottom: 1px solid var(--border);
+      background: var(--surface); position: sticky; top: 0; z-index: 100;
+    }
+    .land-logo { display: flex; align-items: center; gap: 12px; }
+    .land-logo .logo-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--accent); color: #fff; font-weight: 800; font-size: .95rem; display: flex; align-items: center; justify-content: center; }
+    .land-logo-text { font-weight: 700; font-size: 1.05rem; }
+    .land-logo-sub { font-size: .75rem; color: var(--text-muted); }
+    .btn-github { display: flex; align-items: center; gap: 8px; background: #24292e; color: #fff; border: none; border-radius: 8px; padding: 9px 20px; font-size: .9rem; font-weight: 600; cursor: pointer; transition: background .15s; text-decoration: none; }
+    .btn-github:hover { background: #3a3f45; }
+    .btn-github svg { flex-shrink: 0; }
+
+    /* ── Hero ── */
+    .land-hero {
+      text-align: center; padding: 60px 20px 40px;
+      background: linear-gradient(180deg, rgba(99,102,241,.07) 0%, transparent 100%);
+    }
+    .hero-badge { display: inline-block; background: rgba(99,102,241,.15); color: var(--accent); border: 1px solid rgba(99,102,241,.3); border-radius: 20px; padding: 4px 14px; font-size: .8rem; font-weight: 600; margin-bottom: 16px; }
+    .hero-title { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.2; margin-bottom: 12px; }
+    .hero-title span { color: var(--accent); }
+    .hero-sub { color: var(--text-muted); font-size: 1.05rem; max-width: 520px; margin: 0 auto 28px; line-height: 1.6; }
+    .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-github-hero { display: flex; align-items: center; gap: 10px; background: #24292e; color: #fff; border: none; border-radius: 10px; padding: 13px 28px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all .2s; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+    .btn-github-hero:hover { background: #3a3f45; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,.35); }
+    .btn-explore { display: flex; align-items: center; gap: 8px; background: transparent; color: var(--text-muted); border: 1px solid var(--border); border-radius: 10px; padding: 13px 24px; font-size: 1rem; cursor: pointer; transition: all .15s; }
+    .btn-explore:hover { color: var(--text); border-color: var(--text-muted); }
+
+    /* ── Stats ── */
+    .land-stats { display: flex; gap: 1px; background: var(--border); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .stat-block { flex: 1; background: var(--surface); padding: 20px; text-align: center; }
+    .stat-block-val { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
+    .stat-block-lbl { font-size: .78rem; color: var(--text-muted); margin-top: 3px; letter-spacing: .5px; text-transform: uppercase; }
+
+    /* ── Leaderboard ── */
+    .land-main { max-width: 860px; margin: 0 auto; padding: 40px 20px 60px; }
+    .section-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 6px; }
+    .section-sub { color: var(--text-muted); font-size: .88rem; margin-bottom: 24px; }
+
+    .lb-table { width: 100%; border-collapse: collapse; }
+    .lb-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .8px; color: var(--text-muted); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 600; }
+    .lb-row { transition: background .12s; }
+    .lb-row:hover { background: rgba(99,102,241,.05); }
+    .lb-row td { padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .lb-row:last-child td { border-bottom: none; }
+
+    .rank-cell { width: 48px; text-align: center; font-weight: 800; font-size: 1rem; }
+    .rank-1 { color: #f59e0b; font-size: 1.4rem; }
+    .rank-2 { color: #9ca3af; font-size: 1.3rem; }
+    .rank-3 { color: #cd7f32; font-size: 1.25rem; }
+    .rank-n { color: var(--text-muted); font-size: .9rem; }
+
+    .user-cell { display: flex; align-items: center; gap: 10px; }
+    .lb-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--border); }
+    .lb-avatar-placeholder { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .9rem; flex-shrink: 0; }
+    .lb-username { font-weight: 600; font-size: .95rem; }
+    .lb-username a { color: var(--text); text-decoration: none; }
+    .lb-username a:hover { color: var(--accent); }
+
+    .level-badge { display: inline-block; border-radius: 12px; padding: 3px 10px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+
+    .xp-cell { white-space: nowrap; }
+    .xp-val { font-weight: 700; font-size: .95rem; color: var(--accent); }
+    .xp-bar-wrap { height: 4px; background: var(--border); border-radius: 2px; margin-top: 4px; width: 80px; }
+    .xp-bar-fill { height: 100%; border-radius: 2px; background: var(--accent); }
+
+    .quiz-count { color: var(--text-muted); font-size: .88rem; }
+
+    .lb-top3 { background: rgba(245,158,11,.04); }
+    .lb-top3:nth-child(1) { background: rgba(245,158,11,.07); }
+
+    .lb-empty { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+    .lb-loading { text-align: center; padding: 40px; color: var(--text-muted); font-size: .9rem; }
+
+    .lb-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+    .lb-card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .lb-card-title { font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+    .lb-refresh { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; color: var(--text-muted); cursor: pointer; font-size: .8rem; transition: all .15s; }
+    .lb-refresh:hover { border-color: var(--accent); color: var(--accent); }
+
+    .land-footer { text-align: center; padding: 24px; color: var(--text-muted); font-size: .8rem; border-top: 1px solid var(--border); }
+    .land-footer a { color: var(--accent); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      .land-header { padding: 14px 16px; }
+      .land-stats { flex-wrap: wrap; }
+      .stat-block { flex: 1 1 33%; }
+      .lb-table th:nth-child(4), .lb-row td:nth-child(4) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── HEADER ── -->
+  <header class="land-header">
+    <div class="land-logo">
+      <div class="logo-icon">IT</div>
+      <div>
+        <div class="land-logo-text">IT Support Simulator</div>
+        <div class="land-logo-sub">N1 / N2 — par rogeriorch77</div>
+      </div>
+    </div>
+    <button class="btn-github" onclick="Auth.signInWithGitHub()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+      Se connecter avec GitHub
+    </button>
+  </header>
+
+  <!-- ── HERO ── -->
+  <section class="land-hero">
+    <div class="hero-badge">&#9889; Plateforme IT N1/N2 · 100% gratuit</div>
+    <h1 class="hero-title">Entraîne-toi.<br><span>Progresse. Domine le classement.</span></h1>
+    <p class="hero-sub">Simulation de tickets, terminal interactif, quiz chronométré et préparation aux entretiens. Idéal pour décrocher ton premier poste en support IT.</p>
+    <div class="hero-cta">
+      <button class="btn-github-hero" onclick="Auth.signInWithGitHub()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        Commencer avec GitHub
+      </button>
+      <button class="btn-explore" onclick="document.getElementById('ranking').scrollIntoView({behavior:'smooth'})">
+        &#9660; Voir le classement
+      </button>
+    </div>
+  </section>
+
+  <!-- ── STATS ── -->
+  <div class="land-stats" id="statsRow">
+    <div class="stat-block"><div class="stat-block-val" id="statPlayers">—</div><div class="stat-block-lbl">Joueurs</div></div>
+    <div class="stat-block"><div class="stat-block-val" id="statXP">—</div><div class="stat-block-lbl">XP total</div></div>
+    <div class="stat-block"><div class="stat-block-val" id="statQuizzes">—</div><div class="stat-block-lbl">Quiz joués</div></div>
+  </div>
+
+  <!-- ── LEADERBOARD ── -->
+  <main class="land-main" id="ranking">
+    <div class="section-title">&#127942; Classement mondial</div>
+    <p class="section-sub">Visible sans connexion — connecte-toi pour apparaître ici.</p>
+
+    <div class="lb-card">
+      <div class="lb-card-header">
+        <div class="lb-card-title">&#9889; Top 20 — XP total</div>
+        <button class="lb-refresh" onclick="loadRanking()">&#8635; Actualiser</button>
+      </div>
+      <div id="lbBody">
+        <div class="lb-loading">Chargement du classement…</div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="land-footer">
+    Développé par <a href="https://github.com/rogeriorch77" target="_blank">@rogeriorch77</a> ·
+    Plateforme de simulation support IT N1/N2 · Open source
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    const MEDALS = ['🥇','🥈','🥉'];
+
+    function levelBadge(xp) {
+      const l = getLevel(xp);
+      return `<span class="level-badge" style="background:${l.bg};color:${l.color};">${l.name}</span>`;
+    }
+
+    function xpBar(xp) {
+      const l  = getLevel(xp);
+      const idx = LEVELS.indexOf(l);
+      const next = LEVELS[idx + 1];
+      const pct = next ? Math.min(100, Math.round((xp - l.min) / (next.min - l.min) * 100)) : 100;
+      return `<div class="xp-val">${xp.toLocaleString('fr')} XP</div>
+              <div class="xp-bar-wrap"><div class="xp-bar-fill" style="width:${pct}%;background:${l.color};"></div></div>`;
+    }
+
+    async function loadRanking() {
+      document.getElementById('lbBody').innerHTML = '<div class="lb-loading">Chargement…</div>';
+      const rows = await Auth.getRanking(20);
+
+      if (!rows.length) {
+        document.getElementById('lbBody').innerHTML = '<div class="lb-empty">Aucun joueur encore. Sois le premier ! &#127942;</div>';
+        return;
+      }
+
+      const html = `<table class="lb-table">
+        <thead><tr>
+          <th>#</th><th>Joueur</th><th>Niveau</th><th>XP</th><th>Quiz</th>
+        </tr></thead>
+        <tbody>
+          ${rows.map((p, i) => `
+            <tr class="lb-row ${i < 3 ? 'lb-top3' : ''}">
+              <td class="rank-cell">
+                ${i < 3 ? `<span class="rank-${i+1}">${MEDALS[i]}</span>` : `<span class="rank-n">${i+1}</span>`}
+              </td>
+              <td>
+                <div class="user-cell">
+                  ${p.github_avatar
+                    ? `<img class="lb-avatar" src="${p.github_avatar}" alt="${p.github_username}">`
+                    : `<div class="lb-avatar-placeholder">${(p.github_username||'?')[0].toUpperCase()}</div>`}
+                  <div class="lb-username">
+                    <a href="https://github.com/${p.github_username}" target="_blank">@${p.github_username}</a>
+                  </div>
+                </div>
+              </td>
+              <td>${levelBadge(p.total_xp)}</td>
+              <td class="xp-cell">${xpBar(p.total_xp)}</td>
+              <td class="quiz-count">${p.quizzes_played}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+
+      document.getElementById('lbBody').innerHTML = html;
+    }
+
+    async function loadStats() {
+      const s = await Auth.getStats();
+      document.getElementById('statPlayers').textContent  = s.players.toLocaleString('fr');
+      document.getElementById('statXP').textContent       = s.totalXP.toLocaleString('fr');
+      document.getElementById('statQuizzes').textContent  = s.totalQuizzes.toLocaleString('fr');
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Redirect if already logged in
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) { window.location.href = 'dashboard.html'; return; }
+
+      loadRanking();
+      loadStats();
+    });
+  </script>
+</body>
+</html>
