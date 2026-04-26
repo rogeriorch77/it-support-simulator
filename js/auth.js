@@ -50,9 +50,14 @@ const Auth = {
   },
 
   async upsertProfile(user) {
+    const displayName = user.user_metadata?.user_name
+                     || user.user_metadata?.preferred_username
+                     || user.user_metadata?.name
+                     || user.email?.split('@')[0]
+                     || '';
     await sb.from('profiles').upsert({
       id: user.id,
-      github_username: user.user_metadata?.user_name || user.user_metadata?.preferred_username || '',
+      github_username: displayName,
       github_avatar:   user.user_metadata?.avatar_url || '',
       updated_at: new Date().toISOString()
     }, { onConflict: 'id' });
@@ -115,7 +120,11 @@ const Auth = {
 function renderAuthTopbar(user) {
   const el = document.querySelector('.user-info');
   if (!el) return;
-  const name   = user.user_metadata?.user_name || 'user';
+  const name   = user.user_metadata?.user_name
+              || user.user_metadata?.preferred_username
+              || user.user_metadata?.name
+              || user.email?.split('@')[0]
+              || 'user';
   const avatar = user.user_metadata?.avatar_url || '';
   el.innerHTML = `
     ${avatar ? `<img src="${avatar}" alt="${name}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;">` : `<div class="user-avatar">${name[0].toUpperCase()}</div>`}
