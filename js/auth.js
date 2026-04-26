@@ -45,6 +45,7 @@ const Auth = {
   },
 
   async signOut() {
+    localStorage.removeItem('_authCache');
     await sb.auth.signOut();
     window.location.href = 'index.html';
   },
@@ -117,6 +118,11 @@ const Auth = {
 };
 
 // ── Render user in topbar ────────────────────────────────────────────────
+function _topbarHTML(name, avatar) {
+  const logoutBtn = `<button onclick="Auth.signOut()" title="Déconnexion" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px 6px;line-height:1;display:flex;align-items:center;border-radius:4px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>`;
+  return `${avatar ? `<img src="${avatar}" alt="${name}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;">` : `<div class="user-avatar">${name[0].toUpperCase()}</div>`}<span class="user-name">@${name}</span>${logoutBtn}`;
+}
+
 function renderAuthTopbar(user) {
   const el = document.querySelector('.user-info');
   if (!el) return;
@@ -126,12 +132,17 @@ function renderAuthTopbar(user) {
               || user.email?.split('@')[0]
               || 'user';
   const avatar = user.user_metadata?.avatar_url || '';
-  el.innerHTML = `
-    ${avatar ? `<img src="${avatar}" alt="${name}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;flex-shrink:0;">` : `<div class="user-avatar">${name[0].toUpperCase()}</div>`}
-    <span class="user-name">@${name}</span>
-    <button onclick="Auth.signOut()" title="Déconnexion" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px 6px;line-height:1;display:flex;align-items:center;border-radius:4px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--text-muted)'"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
-  `;
+  el.innerHTML = _topbarHTML(name, avatar);
+  localStorage.setItem('_authCache', JSON.stringify({ name, avatar }));
 }
+
+// ── Pre-populate topbar from cache (evita flash ao navegar) ──────────────
+(function() {
+  const cached = JSON.parse(localStorage.getItem('_authCache') || 'null');
+  if (!cached) return;
+  const el = document.querySelector('.user-info');
+  if (el) el.innerHTML = _topbarHTML(cached.name, cached.avatar);
+})();
 
 // ── Auto-guard: protege todas as páginas excepto index.html ──────────────
 (function() {
