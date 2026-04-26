@@ -20,6 +20,7 @@ node_modules/
 .env
 .env.local
 .env*.local
+js/config.js
 
 # Build output (if ever added)
 dist/
@@ -29,3 +30,12 @@ build/
 *.tmp
 *.bak
 *.swp
+
+# Internal / private
+problems/
+supabase/
+testOnline/
+ROADMAP.md
+SCENARIOS_LIST.md
+STRUCTURE.md
+login.html
