@@ -10,6 +10,9 @@
 
 ## Screenshots
 
+### Landing Page
+![Landing Page](img/landing_page.webp)
+
 ### Dashboard
 ![Dashboard](img/dashboard.webp)
 
