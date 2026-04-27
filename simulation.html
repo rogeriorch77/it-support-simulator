@@ -690,6 +690,10 @@
       ['panelList','panelRinging','panelCall','panelScore'].forEach(p => {
         document.getElementById(p).style.display = p === id ? 'block' : 'none';
       });
+      if (id === 'panelScore' || id === 'panelList') {
+        const pc = document.querySelector('.page-content');
+        if (pc) pc.scrollTop = 0;
+      }
     }
 
     function resetToList() {
