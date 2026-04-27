@@ -282,6 +282,29 @@
       .stat:nth-child(2) { border-right: none; }
       .stat:nth-child(3), .stat:nth-child(4) { border-top: 1px solid var(--border); }
     }
+
+    @media (max-width: 540px) {
+      html, body { overflow: auto; height: auto; }
+      .land-wrap  { height: auto; overflow: visible; }
+      .lb-wrap    { flex: none; min-height: 0; }
+      .lb-card    { max-height: 280px; }
+
+      /* esconde botões do header — ficam só os do hero */
+      .header-btns { display: none; }
+
+      .hero { padding: 22px 16px 20px; }
+      .hero-title { font-size: clamp(1.45rem, 7vw, 2rem); }
+      .hero-sub   { font-size: .8rem; }
+
+      .features { grid-template-columns: 1fr; padding: 12px 14px 0; gap: 8px; }
+      .stats    { grid-template-columns: repeat(2, 1fr); }
+      .stats-wrap { padding: 10px 14px; }
+
+      .stat-val { font-size: 1.4rem; }
+
+      .hero-btns { flex-direction: column; align-items: center; gap: 10px; }
+      .btn-hero  { width: 100%; max-width: 300px; justify-content: center; }
+    }
   </style>
 </head>
 <body>
