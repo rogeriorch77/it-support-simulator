@@ -406,6 +406,9 @@
 
 
     // ---- STATE ----
+    const _authCache = JSON.parse(localStorage.getItem('_authCache') || 'null');
+    const userName = (_authCache && _authCache.name) ? _authCache.name : 'Technicien';
+
     let currentScenario = null;
     let currentStep = 0;
     let correctCount = 0;
