@@ -154,6 +154,7 @@
             <button class="cat-btn" data-cat="m365" onclick="toggleCat(this)">&#9729; M365</button>
             <button class="cat-btn" data-cat="securite" onclick="toggleCat(this)">&#128274; Sécurité</button>
             <button class="cat-btn" data-cat="hardware" onclick="toggleCat(this)">&#128736; Hardware</button>
+            <button class="cat-btn" data-cat="helpdesk" onclick="toggleCat(this)">&#128222; Helpdesk</button>
           </div>
           <div style="text-align:center;">
             <button class="btn btn-primary btn-start-quiz" onclick="startQuiz()">&#9654; Démarrer le Quiz</button>
@@ -289,6 +290,46 @@
     { q:"Que désigne le modèle de sécurité Zero Trust ?", type:'single', diff:'n2', cat:'securite', catLabel:'Sécurité',
       opts:["Faire confiance à tout le trafic interne","Ne jamais faire confiance, toujours vérifier chaque accès","Bloquer tout le trafic externe uniquement","Un modèle de chiffrement symétrique"], correct:[1], xp:40, time:30 },
 
+    // Helpdesk
+    { q:"Comment définissez-vous le niveau de service ?", type:'single', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Pourcentage d'appels répondus dans une limite de temps prédéfinie","Rapport entre le nombre de problèmes résolus et le nombre d'appels reçus","Pourcentage de clients satisfaits","Nombre d'appels répondus par jour"], correct:[0], xp:15, time:30 },
+    { q:"Une société possède une équipe dédiée à la résolution de problèmes soumis par ses propres employés. Quel type de helpdesk décrit cette situation ?", type:'single', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Niveau 1","Interne","Sous-traité","Sur site"], correct:[1], xp:15, time:30 },
+    { q:"Pourquoi le technicien helpdesk est-il souvent appelé \"la voix de la société\" ?", type:'single', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Simplement parce qu'il répond aux appels téléphoniques des clients","L'image que les clients ont de la société est souvent basée sur la relation qu'ils ont avec le technicien helpdesk","La société demande aux techniciens helpdesk de faire de la publicité pour leurs produits","Parce que les techniciens sont plus importants que les vendeurs"], correct:[1], xp:15, time:30 },
+    { q:"Vous diagnostiquez un ordinateur défectueux et le client pleure car il a perdu ses photos de famille. Comment réagissez-vous ?", type:'single', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Vous expliquez que ce n'est pas votre responsabilité et que le client aurait dû avoir des sauvegardes","Vous exprimez de l'empathie et suggérez des solutions de sauvegarde pour l'avenir","Vous laissez le client exprimer sa frustration avant de dire au revoir","Vous saisissez l'opportunité de vendre un logiciel de sauvegarde"], correct:[1], xp:15, time:30 },
+    { q:"Quelles sont les attentes sur lesquelles un client de Helpdesk doit toujours pouvoir compter ? (plusieurs réponses possibles)", type:'multiple', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Diagnostic du problème","Envoi d'un technicien sur site","Remplacement intégral d'un PC défectueux","La communication avec l'utilisateur sur l'avancement d'un dossier technique"], correct:[0,3], xp:15, time:45 },
+    { q:"Un client appelle parce que le curseur de la souris ne bouge plus. Quelle est la meilleure réponse ?", type:'single', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Est-ce que la souris est branchée ?","Vous avez dû oublier de brancher le câble USB","Pouvez-vous débrancher et rebrancher le câble de la souris s'il vous plaît ?","Le signal généré par la LED n'est pas converti en coordonnées de pixels par le pilote de la souris."], correct:[2], xp:15, time:30 },
+    { q:"Comment pouvez-vous vous assurer d'avoir correctement compris le problème d'un client ?", type:'single', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Poser plus de questions","Faire des tests supplémentaires","Répéter ou paraphraser la description du problème","Demander au client de répéter la description du problème"], correct:[2], xp:15, time:30 },
+    { q:"Quand posez-vous une question ouverte ? (plusieurs réponses possibles)", type:'multiple', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Quand le client a tendance à trop parler et vous voulez garder le contrôle de l'appel","Quand vous voulez inviter le client à parler pour récolter des données plus détaillées sur l'incident","Quand vous ne savez pas exactement dans quelle direction orienter votre résolution d'incident","Quand vous voulez une réponse bien précise"], correct:[1,2], xp:15, time:45 },
+    { q:"Quelles sont les étapes typiques dans un appel type au helpdesk ? (plusieurs réponses possibles)", type:'multiple', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Identifier le client (nom, téléphone, email…)","Vérifier les droits du client au support","Résolution de panne (tenter de résoudre le problème technique)","Catégoriser l'appel","Détecter les besoins et apporter les conseils y afférents","Transférer l'appel vers le service commercial"], correct:[0,1,2,3,4], xp:25, time:45 },
+    { q:"Pourquoi est-ce important de rapidement demander le numéro de téléphone du client lors d'un appel ?", type:'single', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["C'est un champ obligatoire dans le formulaire de la page de contact","Cela vous permet de rappeler le client si un incident survient sur la ligne","Les procédures du centre helpdesk indiquent que c'est important","Parce que vous ne pouvez pas modifier ce champ plus tard"], correct:[1], xp:15, time:30 },
+    { q:"Laquelle de ces définitions représente le mieux l'outil ticketing ? (plusieurs réponses possibles)", type:'multiple', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Gestion collaborative des incidents","Tableau dynamique de reporting des incidents utilisateurs","Un compteur digital avec le numéro du ticket à prendre en charge","Une machine qui distribue des tickets à chaque client mécontent"], correct:[0,1], xp:15, time:45 },
+    { q:"Quels sont les avantages d'un outil ticketing ? (plusieurs réponses possibles)", type:'multiple', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Maîtriser le flux de communication","Assigner des tickets et des rapports d'incident à un collaborateur spécifique","Évaluer les performances de votre support client","Suivre de près la satisfaction client"], correct:[0,1,2,3], xp:15, time:45 },
+    { q:"Pourquoi mettre en place un outil de ticketing ? (plusieurs réponses possibles)", type:'multiple', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Réduire les délais de résolution","Faciliter la communication client","Il permet de résoudre un incident rapidement","C'est obligatoire pour un service client aujourd'hui"], correct:[0,1,2], xp:15, time:45 },
+    { q:"Que faites-vous si la qualité d'appel ne vous permet pas de comprendre votre interlocuteur ?", type:'single', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Continuer la gestion d'appel avec l'utilisateur comme si de rien était","Prendre les informations pour le rappeler si possible ou l'inviter à rappeler","Transférer l'utilisateur auprès d'un autre technicien pour déterminer si le problème vient d'un incident téléphonie"], correct:[1], xp:15, time:30 },
+    { q:"Si un utilisateur vous contacte pour un incident informatique, quelle est la 1ère opération à réaliser ?", type:'single', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Redémarrer l'ordinateur","Effectuer une prise en main à distance","Ecouter l'utilisateur et effectuer un diagnostic","Redémarrer tous les services via l'Active Directory"], correct:[2], xp:15, time:30 },
+    { q:"Que faire quand l'utilisateur appelle pour un problème de climatisation ?", type:'single', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Lui indiquer d'aller voir le support de proximité","Lui dire que nous ne gérons pas les problèmes hors informatique et le rediriger","Prévenir les services généraux"], correct:[0], xp:15, time:30 },
+    { q:"Un mot de passe ne fonctionne pas même après réinitialisation. Comment s'assurer que l'utilisateur le saisit correctement ?", type:'single', diff:'n1', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Demander à l'utilisateur de taper le mot de passe dans un champ lisible pour voir s'il le tape correctement","Faire réinitialiser à la main, par l'utilisateur, le mot de passe à une valeur qu'il souhaite","Rediriger l'utilisateur vers le support local informatique"], correct:[0], xp:15, time:30 },
+    { q:"Quelle est la définition d'un incident dans le contexte ITIL ?", type:'single', diff:'n2', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Un grand feu qui se propage en causant des dégâts informatiques","Une interruption non planifiée ou de la dégradation de la qualité d'un service informatique","Un problème informatique","Une assistance informatique"], correct:[1], xp:25, time:30 },
+    { q:"Quelle est la définition d'une requête de service dans le contexte ITIL ?", type:'single', diff:'n2', cat:'helpdesk', catLabel:'Helpdesk',
+      opts:["Toute demande d'installation ou de configuration du poste informatique","Une recherche dans une base de données","Un dysfonctionnement qui conduit à une requête","Une recherche informatique"], correct:[0], xp:25, time:30 },
+
     // Hardware
     { q:"Que signifie POST au démarrage d'un ordinateur ?", type:'single', diff:'n1', cat:'hardware', catLabel:'Hardware',
       opts:["Power On Self Test","Primary Operating System Test","Peripheral Output System Test","Pre-OS Setup Tool"], correct:[0], xp:15, time:30 },
@@ -296,6 +337,62 @@
       opts:["Agrégation de disques pour la performance","Miroir — copie identique sur deux disques","Répartition des données sur plusieurs disques","Sauvegarde sur bande magnétique"], correct:[1], xp:15, time:30 },
     { q:"Quels composants peuvent provoquer un écran bleu (BSOD) ?", type:'multiple', diff:'n2', cat:'hardware', catLabel:'Hardware',
       opts:["RAM défectueuse","Pilotes (drivers) incompatibles ou corrompus","Disque dur défaillant","Souris débranchée"], correct:[0,1,2], xp:25, time:45 },
+
+    // AD / GPO (nouveaux)
+    { q:"Quel est le rôle de l'Active Directory ? (Plusieurs réponses sont possibles)", type:'multiple', diff:'n1', cat:'ad', catLabel:'AD / GPO',
+      opts:["Fournir des services centralisés d'identification et d'authentification à un réseau d'ordinateurs","L'attribution et l'application de stratégies","Une application de ticketing","Un outil dédié uniquement pour renseigner les numéros de série des ordinateurs"], correct:[0,1], xp:15, time:45 },
+    { q:"Qu'est-ce que l'Active Directory ?", type:'single', diff:'n1', cat:'ad', catLabel:'AD / GPO',
+      opts:["Service d'identification et authentification / application de stratégies / installation de mises à jour","Une base de connaissance visant à aider les techniciens","La liste des directeurs d'activité"], correct:[0], xp:15, time:30 },
+    { q:"Quels outils permettent de prendre la main sur un poste distant ? (Plusieurs réponses sont possibles)", type:'multiple', diff:'n1', cat:'ad', catLabel:'AD / GPO',
+      opts:["msra /offerra","cmd","Team Viewer","Java"], correct:[0,2], xp:15, time:45 },
+    { q:"De quoi avez-vous besoin pour réaliser une prise en main à distance (PMAD) ? (Plusieurs réponses sont possibles)", type:'multiple', diff:'n1', cat:'ad', catLabel:'AD / GPO',
+      opts:["Le nom de l'utilisateur","Le code poste de l'utilisateur","L'adresse IP de son ordinateur","Le nom réseau de son ordinateur"], correct:[2,3], xp:15, time:45 },
+
+    // Hardware (nouveaux)
+    { q:"Quelle est la pièce qui ne fait pas partie d'une imprimante ?", type:'single', diff:'n1', cat:'hardware', catLabel:'Hardware',
+      opts:["Le four","Le frigo","La carte réseau","Le robinet"], correct:[3], xp:15, time:30 },
+    { q:"Quels tests effectuer sur une imprimante locale qui n'imprime plus ?", type:'single', diff:'n1', cat:'hardware', catLabel:'Hardware',
+      opts:["Demander à l'utilisateur de contacter le support local informatique","Vérifier si l'imprimante répond au ping / vérifier les branchements / redémarrer l'imprimante","Vérifier les branchements / redémarrer / vider la file d'impression (spooler) / vérifier les drivers / réinstaller l'imprimante"], correct:[2], xp:15, time:30 },
+    { q:"Quel est le composant où est stocké le système d'exploitation ?", type:'single', diff:'n1', cat:'hardware', catLabel:'Hardware',
+      opts:["Le processeur","La Random Access Memory (RAM)","Le disque dur","Le lecteur de CD"], correct:[2], xp:15, time:30 },
+    { q:"L'écran d'un PC fixe est noir et la souris ne bouge pas. Quels tests effectuer ?", type:'single', diff:'n1', cat:'hardware', catLabel:'Hardware',
+      opts:["Eteindre le PC et attendre 3 jours pour laisser l'écran refroidir","Demander de changer le fond d'écran et faire redémarrer le poste","Vérifier la diode d'alimentation / vérifier les branchements alimentation et vidéo / redémarrer le PC"], correct:[2], xp:15, time:30 },
+
+    // Windows (nouveaux)
+    { q:"Quel est le service Windows qui gère les impressions ?", type:'single', diff:'n1', cat:'windows', catLabel:'Windows',
+      opts:["Printer","Spooner","Spooler","Impressioner"], correct:[2], xp:15, time:30 },
+    { q:"Mon clavier écrit un 'q' au lieu d'un 'a'. Que faire ?", type:'single', diff:'n1', cat:'windows', catLabel:'Windows',
+      opts:["Repasser le clavier en AZERTY","Faire changer de clavier par l'utilisateur","Demander à l'utilisateur de démonter le clavier pour remettre les touches dans le bon ordre"], correct:[0], xp:15, time:30 },
+    { q:"Quel est l'intérêt principal de ne pas donner les droits administrateur local à l'utilisateur ? (Plusieurs réponses sont possibles)", type:'multiple', diff:'n2', cat:'windows', catLabel:'Windows',
+      opts:["Empêcher la propagation de certains virus","Empêcher la création de compte dans l'Active Directory","Empêcher l'installation d'applications non contrôlées","Empêcher le surf sur Internet"], correct:[0,2], xp:25, time:45 },
+    { q:"Quelle commande permet de connecter les ressources partagées ?", type:'single', diff:'n1', cat:'windows', catLabel:'Windows',
+      opts:["ncpa.cpl","Net File","Net Use","Net Share"], correct:[2], xp:15, time:30 },
+    { q:"Quelle commande permet de vider le cache DNS ?", type:'single', diff:'n1', cat:'windows', catLabel:'Windows',
+      opts:["ipconfig /DnsFlush","ipconfig /Flush ip","ipconfig /flushDns","ipConfig /flush Rarp"], correct:[2], xp:15, time:30 },
+
+    // M365 (nouveaux)
+    { q:"La modification du nom d'affichage d'une liste de diffusion s'opère au niveau :", type:'single', diff:'n2', cat:'m365', catLabel:'M365',
+      opts:["De l'Active Directory","Du centre d'administration d'Office 365 au niveau du compte utilisateur","Du centre d'administration d'Exchange"], correct:[2], xp:25, time:30 },
+    { q:"Comment rediriger un mail sur Outlook ?", type:'single', diff:'n1', cat:'m365', catLabel:'M365',
+      opts:["Il faut déléguer une tâche à une assistante","Il faut créer une règle de redirection","Ce n'est pas possible","Cela dépend de la version d'Outlook"], correct:[1], xp:15, time:30 },
+    { q:"Est-il possible de récupérer les éléments supprimés sur Outlook ?", type:'single', diff:'n1', cat:'m365', catLabel:'M365',
+      opts:["Oui","Non"], correct:[0], xp:15, time:30 },
+    { q:"La suppression ou l'ajout d'une licence pour une messagerie s'opère au niveau :", type:'single', diff:'n2', cat:'m365', catLabel:'M365',
+      opts:["De l'Active Directory puis compte utilisateur","Du centre d'administration d'Exchange","Du centre d'administration d'Office 365"], correct:[2], xp:25, time:30 },
+    { q:"Qu'est-ce qu'une liste de diffusion dynamique ?", type:'single', diff:'n2', cat:'m365', catLabel:'M365',
+      opts:["C'est une liste de diffusion avec des règles sur l'appartenance","C'est une liste gérée par le propriétaire","C'est une liste gérée par le service informatique"], correct:[0], xp:25, time:30 },
+    { q:"Est-il possible de rappeler un message sur Outlook ?", type:'single', diff:'n2', cat:'m365', catLabel:'M365',
+      opts:["Non","Oui, sous certaines conditions"], correct:[1], xp:25, time:30 },
+
+    // Réseau (nouveaux)
+    { q:"A quoi sert un serveur DHCP ?", type:'single', diff:'n1', cat:'reseau', catLabel:'Réseau',
+      opts:["Attribution d'un bail IP automatiquement","Attribution d'un bail IP manuellement"], correct:[0], xp:15, time:30 },
+    { q:"Comment pouvons-nous nous connecter à l'intranet à partir d'une connexion externe ?", type:'single', diff:'n1', cat:'reseau', catLabel:'Réseau',
+      opts:["SSSSL","VPPN","NVP","VPN"], correct:[3], xp:15, time:30 },
+    { q:"A quoi correspond le terme ADSL ?", type:'single', diff:'n1', cat:'reseau', catLabel:'Réseau',
+      opts:["Une liaison analogique à débit asymétrique","Une liaison numérique à débit asymétrique","Une liaison analogique à débit symétrique","Une liaison numérique à débit symétrique"], correct:[1], xp:15, time:30 },
+    { q:"A quoi sert le DNS ?", type:'single', diff:'n1', cat:'reseau', catLabel:'Réseau',
+      opts:["A transporter les paquets vers Internet","Résoudre un nom de domaine en trouvant l'adresse IP qui lui est associée","A créer des comptes dans l'AD"], correct:[1], xp:15, time:30 },
   ];
 
   // ── PERSISTENT STATE ────────────────────────────────────────────────────
