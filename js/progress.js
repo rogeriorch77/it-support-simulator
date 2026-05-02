@@ -11,12 +11,16 @@ const Progress = (() => {
 
   // Level thresholds
   const LEVELS = [
-    { id: 'rookie',    name: 'Débutant',        minXP: 0,    stars: 1 },
-    { id: 'tech_n1',  name: 'Technicien N1',  minXP: 150,  stars: 2 },
-    { id: 'spec_n1',  name: 'Spécialiste N1', minXP: 400,  stars: 3 },
-    { id: 'tech_n2',  name: 'Technicien N2',  minXP: 800,  stars: 4 },
-    { id: 'expert_n2',name: 'Expert N2',       minXP: 1500, stars: 5 },
-    { id: 'senior',   name: 'N2 Confirmé',     minXP: 2500, stars: 6 },
+    { id: 'rookie',     name: 'Débutant',        minXP: 0,     stars: 1 },
+    { id: 'tech_n1',   name: 'Technicien N1',   minXP: 150,   stars: 2 },
+    { id: 'spec_n1',   name: 'Spécialiste N1',  minXP: 400,   stars: 3 },
+    { id: 'tech_n2',   name: 'Technicien N2',   minXP: 800,   stars: 4 },
+    { id: 'expert_n2', name: 'Expert N2',        minXP: 1500,  stars: 5 },
+    { id: 'senior',    name: 'N2 Confirmé',      minXP: 2500,  stars: 6 },
+    { id: 'specialist',name: 'Spécialiste',      minXP: 4000,  stars: 7 },
+    { id: 'expert',    name: 'Expert',           minXP: 7000,  stars: 8 },
+    { id: 'architect', name: 'Architecte',       minXP: 14000, stars: 9 },
+    { id: 'elite',     name: 'Élite',            minXP: 999999, stars: 10 },
   ];
 
   // Badge definitions
