@@ -1,3 +1,3 @@
 // Project Settings
 const SUPABASE_URL  = 'https://lwubldeubynnbcfzmhrx.supabase.co';
-const SUPABASE_ANON = 'e8605ca86b3869cc4e152063a9a74fa1230700ab';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3dWJsZGV1YnlubmJjZnptaHJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMDY2NTYsImV4cCI6MjA5Mjc4MjY1Nn0.ojMIWmk1HtydRFPYJpYB_WlJ-tEooLaVVHdsm26ycQY';
