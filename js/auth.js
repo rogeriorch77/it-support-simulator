@@ -20,11 +20,15 @@ function getLevel(xp) {
 // ── Auth module ──────────────────────────────────────────────────────────
 const Auth = {
   _session: null,
+  _stateSubscription: null,
 
   async init() {
     const { data: { session } } = await sb.auth.getSession();
     this._session = session;
-    sb.auth.onAuthStateChange((_, s) => { this._session = s; });
+    if (!this._stateSubscription) {
+      const { data: { subscription } } = sb.auth.onAuthStateChange((_, s) => { this._session = s; });
+      this._stateSubscription = subscription;
+    }
     return session;
   },
 
@@ -93,12 +97,26 @@ const Auth = {
   },
 
   async guard() {
-    const session = await this.init();
-    if (!session) { window.location.href = 'index.html'; return null; }
-    await this.upsertProfile(session.user);
-    await this.syncXP(session.user.id);
-    renderAuthTopbar(session.user);
-    return session;
+    // INITIAL_SESSION fires after PKCE code exchange completes — avoids race condition
+    // where getSession() returns null before the async code exchange finishes.
+    return new Promise((resolve) => {
+      const { data: { subscription } } = sb.auth.onAuthStateChange(async (event, session) => {
+        if (event !== 'INITIAL_SESSION' && event !== 'SIGNED_IN') return;
+        subscription.unsubscribe();
+
+        if (!session) {
+          window.location.href = 'index.html';
+          resolve(null);
+          return;
+        }
+
+        this._session = session;
+        await this.upsertProfile(session.user);
+        await this.syncXP(session.user.id);
+        renderAuthTopbar(session.user);
+        resolve(session);
+      });
+    });
   },
 
   async getRanking(limit = 20) {
