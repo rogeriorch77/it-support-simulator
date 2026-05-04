@@ -527,7 +527,7 @@
       const xp = s.totalXP || 0;
       document.getElementById('statXP').textContent       = xp >= 1000 ? (xp / 1000).toFixed(1) + 'k' : xp;
       document.getElementById('statQuizzes').textContent  = (s.totalQuizzes || 0).toLocaleString('fr');
-      document.getElementById('statTickets').textContent  = '0';
+      document.getElementById('statTickets').textContent  = '80';
     } catch(e) { console.warn('loadStats:', e); }
   }
 
