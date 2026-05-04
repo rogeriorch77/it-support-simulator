@@ -97,22 +97,34 @@ const Auth = {
   },
 
   async guard() {
-    // INITIAL_SESSION fires after PKCE code exchange completes — avoids race condition
-    // where getSession() returns null before the async code exchange finishes.
+    const params = new URLSearchParams(window.location.search);
+    const urlError = params.get('error');
+    if (urlError) {
+      console.error('[Auth] OAuth error na URL:', urlError, params.get('error_description'));
+      window.location.href = 'index.html';
+      return null;
+    }
+
     return new Promise((resolve) => {
       const { data: { subscription } } = sb.auth.onAuthStateChange(async (event, session) => {
         if (event !== 'INITIAL_SESSION' && event !== 'SIGNED_IN') return;
         subscription.unsubscribe();
+        console.log('[Auth] event:', event, '| session:', session ? session.user?.email : 'NULL');
 
         if (!session) {
+          console.warn('[Auth] Sem sessão — redirecionando para index');
           window.location.href = 'index.html';
           resolve(null);
           return;
         }
 
         this._session = session;
-        await this.upsertProfile(session.user);
-        await this.syncXP(session.user.id);
+        try {
+          await this.upsertProfile(session.user);
+          await this.syncXP(session.user.id);
+        } catch(e) {
+          console.error('[Auth] Erro no upsertProfile/syncXP:', e);
+        }
         renderAuthTopbar(session.user);
         resolve(session);
       });
