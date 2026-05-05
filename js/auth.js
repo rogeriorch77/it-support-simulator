@@ -70,28 +70,21 @@ const Auth = {
 
   async syncXP(userId) {
     try {
-      const local = JSON.parse(localStorage.getItem('it_quiz_state') || '{}');
-      const localXP = local.totalXP || 0;
-      const { data: p } = await sb.from('profiles').select('total_xp,quizzes_played,total_correct,total_answered,best_score').eq('id', userId).single();
+      const stats    = typeof Progress !== 'undefined' ? Progress.getStats() : null;
+      const localXP  = stats?.xp || 0;
+      const history  = stats?.history || [];
+      const bestScore = history.length ? Math.max(...history.map(h => h.score)) : 0;
+
+      const { data: p } = await sb.from('profiles').select('total_xp,quizzes_played,best_score').eq('id', userId).single();
       const remoteXP = p?.total_xp || 0;
 
       if (localXP > remoteXP) {
         await sb.from('profiles').update({
           total_xp:       localXP,
-          quizzes_played: local.quizzes       || 0,
-          total_correct:  local.totalCorrect  || 0,
-          total_answered: local.totalAnswered || 0,
-          best_score:     local.bestScore     || 0,
-          updated_at: new Date().toISOString()
+          quizzes_played: history.length,
+          best_score:     bestScore,
+          updated_at:     new Date().toISOString()
         }).eq('id', userId);
-      } else if (remoteXP > localXP && p) {
-        localStorage.setItem('it_quiz_state', JSON.stringify({
-          totalXP:       p.total_xp,
-          quizzes:       p.quizzes_played,
-          totalCorrect:  p.total_correct,
-          totalAnswered: p.total_answered,
-          bestScore:     p.best_score
-        }));
       }
     } catch(e) { console.warn('XP sync:', e); }
   },
@@ -132,10 +125,11 @@ const Auth = {
   },
 
   async getRanking(limit = 20) {
-    const { data } = await sb.from('profiles')
+    const { data, error } = await sb.from('profiles')
       .select('github_username,github_avatar,total_xp,quizzes_played,best_score')
       .order('total_xp', { ascending: false })
       .limit(limit);
+    if (error) console.error('[Ranking] Supabase error:', error);
     return data || [];
   },
 

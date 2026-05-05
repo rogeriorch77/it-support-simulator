@@ -652,6 +652,10 @@
         duration:   timerSec
       });
 
+      if (Auth._session?.user?.id) {
+        Auth.syncXP(Auth._session.user.id);
+      }
+
       // Score ring
       const ring = document.getElementById('scoreRing');
       ring.textContent = pct + '%';
