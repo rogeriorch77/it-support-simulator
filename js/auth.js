@@ -177,7 +177,7 @@ function renderAuthTopbar(user) {
   if (isLocal) return; // sem auth em desenvolvimento local
 
   const page = window.location.pathname.split('/').pop() || 'index.html';
-  if (page !== 'index.html' && page !== '') {
+  if (page !== 'index.html' && page !== '' && page !== 'ranking.html') {
     document.addEventListener('DOMContentLoaded', () => Auth.guard());
   }
 })();

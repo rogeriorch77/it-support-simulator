@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classement — IT Support Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <style>
+    :root {
+      --bg:      #080b0f;
+      --surface: #0f1419;
+      --surf2:   #141c24;
+      --border:  #1e2d3d;
+      --border2: #243447;
+      --text:    #cdd9e5;
+      --muted:   #5a7a96;
+      --green:   #39d353;
+      --cyan:    #58c0e0;
+      --blue:    #4e8ef7;
+      --purple:  #9b72f5;
+      --orange:  #f0883e;
+      --mono:    'JetBrains Mono', monospace;
+      --display: 'Syne', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--mono); }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(circle, #1a2d40 1px, transparent 1px);
+      background-size: 28px 28px;
+      opacity: .4;
+      pointer-events: none; z-index: 0;
+    }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.05) 2px, rgba(0,0,0,.05) 4px);
+      pointer-events: none; z-index: 0;
+    }
+
+    .wrap { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 0 18px 40px; }
+
+    /* ── HEADER ── */
+    .rk-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 18px; height: 56px;
+      background: rgba(8,11,15,.9);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      position: sticky; top: 0; z-index: 100;
+      margin-bottom: 32px;
+    }
+
+    .rk-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo-icon {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: linear-gradient(135deg, #0f2a5e 0%, #1d4ed8 100%);
+      color: #fff; font-family: var(--mono); font-weight: 800; font-size: .74rem;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 0 1px rgba(29,78,216,.5), 0 0 18px rgba(29,78,216,.25);
+      letter-spacing: -.5px;
+    }
+    .logo-title { font-weight: 700; font-size: .88rem; color: var(--text); }
+
+    .btn-back {
+      display: flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.04); color: var(--text);
+      border: 1px solid var(--border2); border-radius: 7px;
+      padding: 7px 14px; font-size: .76rem; font-weight: 700;
+      font-family: var(--mono); cursor: pointer; text-decoration: none;
+      transition: all .15s;
+    }
+    .btn-back:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* ── PAGE TITLE ── */
+    .rk-hero { text-align: center; margin-bottom: 28px; }
+    .rk-hero h1 {
+      font-family: var(--display); font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 800; color: #e6f0ff; letter-spacing: -.03em; margin-bottom: 8px;
+    }
+    .rk-hero p { color: var(--muted); font-size: .82rem; }
+
+    /* ── STATS ── */
+    .rk-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden; margin-bottom: 24px;
+    }
+    .rk-stat {
+      padding: 16px 20px; display: flex; align-items: center; gap: 12px;
+      border-right: 1px solid var(--border);
+    }
+    .rk-stat:last-child { border-right: none; }
+    .rk-stat-val { font-size: 1.6rem; font-weight: 800; color: #e6f0ff; line-height: 1; letter-spacing: -.04em; }
+    .rk-stat-lbl { font-size: .58rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-top: 4px; }
+
+    /* ── TABLE HEADER ── */
+    .rk-table-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .rk-table-title { font-weight: 700; font-size: .88rem; color: var(--text); letter-spacing: .02em; }
+    .rk-count { font-size: .72rem; color: var(--muted); }
+
+    /* ── TABLE ── */
+    .rk-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .rk-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 11px 16px; border-bottom: 1px solid var(--border);
+      transition: background .12s;
+    }
+    .rk-row:last-child { border-bottom: none; }
+    .rk-row:hover { background: rgba(78,142,247,.03); }
+    .rk-row.top1 { background: rgba(78,142,247,.05); }
+    .rk-row.top2 { background: rgba(155,114,245,.03); }
+    .rk-row.top3 { background: rgba(240,136,62,.03); }
+
+    .rk-pos { width: 26px; text-align: center; flex-shrink: 0; font-size: .78rem; color: var(--muted); font-weight: 700; }
+    .rk-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+    .rk-avatar-fallback {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--surf2); display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: .75rem; color: var(--muted); flex-shrink: 0;
+    }
+    .rk-info { flex: 1; min-width: 0; }
+    .rk-name { font-weight: 700; font-size: .8rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 3px; }
+    .rk-xp-wrap { text-align: right; flex-shrink: 0; }
+    .rk-xp-val { font-weight: 700; font-size: .8rem; line-height: 1; margin-bottom: 5px; }
+    .rk-bar-bg { height: 3px; background: var(--border); border-radius: 2px; width: 64px; margin-left: auto; }
+    .rk-bar-fill { height: 100%; border-radius: 2px; }
+
+    /* ── BADGE ── */
+    .rk-badge {
+      border-radius: 5px; padding: 2px 8px;
+      font-size: .62rem; font-weight: 700; letter-spacing: .06em;
+      font-family: var(--mono); border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    /* ── LOADING ── */
+    .rk-loading { padding: 52px 20px; text-align: center; }
+    .rk-spin {
+      width: 32px; height: 32px;
+      border: 2.5px solid rgba(88,192,224,.12);
+      border-top-color: var(--cyan);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .rk-load-text { color: var(--text); font-size: .87rem; font-weight: 600; margin-bottom: 6px; }
+    .rk-load-sub  { color: var(--muted); font-size: .75rem; }
+
+    /* ── FOOTER ── */
+    .rk-footer {
+      text-align: center; padding: 20px 0 0;
+      color: var(--muted); font-size: .67rem; letter-spacing: .04em;
+    }
+    .rk-footer a { color: var(--cyan); text-decoration: none; }
+    .rk-footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) {
+      .rk-stats { grid-template-columns: 1fr 1fr; }
+      .rk-stat:nth-child(2) { border-right: none; }
+      .rk-stat:nth-child(3) { grid-column: 1 / -1; border-top: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="rk-header">
+    <a class="rk-logo" href="index.html">
+      <div class="logo-icon">IT</div>
+      <span class="logo-title">IT Support Simulator</span>
+    </a>
+    <a class="btn-back" href="index.html">← Retour</a>
+  </header>
+
+  <div class="wrap">
+    <div class="rk-hero">
+      <h1>&#127942; Classement Global</h1>
+      <p>Les meilleurs joueurs classés par XP total</p>
+    </div>
+
+    <div class="rk-stats">
+      <div class="rk-stat">
+        <div>
+          <div class="rk-stat-val" id="statPlayers">—</div>
+          <div class="rk-stat-lbl">Joueurs classés</div>
+        </div>
+      </div>
+      <div class="rk-stat">
+        <div>
+          <div class="rk-stat-val" id="statXP">—</div>
+          <div class="rk-stat-lbl">XP total cumulé</div>
+        </div>
+      </div>
+      <div class="rk-stat">
+        <div>
+          <div class="rk-stat-val" id="statQuizzes">—</div>
+          <div class="rk-stat-lbl">Simulations jouées</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rk-table-head">
+      <span class="rk-table-title">&#127942; Classement complet</span>
+      <span class="rk-count" id="rkCount"></span>
+    </div>
+
+    <div class="rk-card" id="rkBody">
+      <div class="rk-loading">
+        <div class="rk-spin"></div>
+        <div class="rk-load-text">Chargement du classement...</div>
+        <div class="rk-load-sub">Connexion au serveur</div>
+      </div>
+    </div>
+
+    <footer class="rk-footer">
+      Développé par <a href="https://github.com/rogeriorch77" target="_blank">@rogeriorch77</a>
+      &nbsp;·&nbsp; IT Support Simulator v1.0 &nbsp;·&nbsp; 2025
+    </footer>
+  </div>
+
+  <script>
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    const MEDALS = ['&#129945;', '&#129944;', '&#129943;'];
+
+    const LB_LEVELS = [
+      { min:0,     name:'Débutant', bg:'rgba(90,122,150,.15)', color:'#5a7a96' },
+      { min:500,   name:'Junior',   bg:'rgba(78,142,247,.12)', color:'#4e8ef7' },
+      { min:2000,  name:'Confirmé', bg:'rgba(57,211,83,.12)',  color:'#39d353' },
+      { min:5000,  name:'Senior',   bg:'rgba(155,114,245,.12)',color:'#9b72f5' },
+      { min:10000, name:'Expert',   bg:'rgba(240,136,62,.12)', color:'#f0883e' },
+    ];
+
+    function getLevel(xp) {
+      let l = LB_LEVELS[0];
+      for (const lv of LB_LEVELS) { if (xp >= lv.min) l = lv; }
+      return l;
+    }
+
+    function badge(xp) {
+      const l = getLevel(xp);
+      return `<span class="rk-badge" style="background:${l.bg};color:${l.color};border-color:${l.color}33;">${l.name}</span>`;
+    }
+
+    function xpBar(xp) {
+      const l = getLevel(xp);
+      const idx = LB_LEVELS.indexOf(l);
+      const next = LB_LEVELS[idx + 1];
+      const pct = next ? Math.min(100, Math.round((xp - l.min) / (next.min - l.min) * 100)) : 100;
+      return { color: l.color, pct };
+    }
+
+    async function loadRanking() {
+      const { data, error } = await sb.from('profiles')
+        .select('github_username,github_avatar,total_xp,quizzes_played,best_score')
+        .gte('total_xp', 150)
+        .order('total_xp', { ascending: false })
+        .limit(100);
+
+      if (error || !data || !data.length) {
+        document.getElementById('rkBody').innerHTML =
+          '<div class="rk-loading"><div class="rk-load-text">Aucun joueur pour l\'instant.</div><div class="rk-load-sub">Sois le premier à rejoindre le classement !</div></div>';
+        return;
+      }
+
+      document.getElementById('rkCount').textContent = data.length + ' joueur' + (data.length > 1 ? 's' : '');
+
+      document.getElementById('rkBody').innerHTML = data.map((p, i) => {
+        const xp   = p.total_xp || 0;
+        const name = p.github_username || 'Anonyme';
+        const { color, pct } = xpBar(xp);
+        const rowClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+        const pos = i < 3
+          ? `<span style="font-size:1.1rem;">${MEDALS[i]}</span>`
+          : `<span>${i + 1}</span>`;
+        const avatar = p.github_avatar
+          ? `<img class="rk-avatar" src="${p.github_avatar}" alt="">`
+          : `<div class="rk-avatar-fallback">${name[0].toUpperCase()}</div>`;
+
+        return `<div class="rk-row ${rowClass}">
+          <div class="rk-pos">${pos}</div>
+          ${avatar}
+          <div class="rk-info">
+            <div class="rk-name">@${name}</div>
+            <div>${badge(xp)}</div>
+          </div>
+          <div class="rk-xp-wrap">
+            <div class="rk-xp-val" style="color:${color};">${xp.toLocaleString('fr')} XP</div>
+            <div class="rk-bar-bg"><div class="rk-bar-fill" style="width:${pct}%;background:${color};"></div></div>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    async function loadStats() {
+      const { data } = await sb.from('profiles').select('total_xp,quizzes_played').gte('total_xp', 1);
+      const rows = data || [];
+      const totalXP = rows.reduce((s, p) => s + (p.total_xp || 0), 0);
+      const totalQ  = rows.reduce((s, p) => s + (p.quizzes_played || 0), 0);
+      document.getElementById('statPlayers').textContent  = rows.length.toLocaleString('fr');
+      document.getElementById('statXP').textContent       = totalXP >= 1000 ? (totalXP / 1000).toFixed(1) + 'k' : totalXP;
+      document.getElementById('statQuizzes').textContent  = totalQ.toLocaleString('fr');
+    }
+
+    loadRanking();
+    loadStats();
+  </script>
+</body>
+</html>
