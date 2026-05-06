@@ -127,6 +127,8 @@ const Auth = {
   async getRanking(limit = 20) {
     const { data, error } = await sb.from('profiles')
       .select('github_username,github_avatar,total_xp,quizzes_played,best_score')
+      .gt('total_xp', 0)
+      .not('github_username', 'eq', '')
       .order('total_xp', { ascending: false })
       .limit(limit);
     if (error) console.error('[Ranking] Supabase error:', error);
