@@ -127,7 +127,7 @@ const Auth = {
   async getRanking(limit = 20) {
     const { data, error } = await sb.from('profiles')
       .select('github_username,github_avatar,total_xp,quizzes_played,best_score')
-      .gt('total_xp', 0)
+      .gte('total_xp', 150)
       .order('total_xp', { ascending: false })
       .limit(limit);
     if (error) console.error('[Ranking] Supabase error:', error);
@@ -135,7 +135,7 @@ const Auth = {
   },
 
   async getStats() {
-    const { data } = await sb.from('profiles').select('total_xp,quizzes_played').gte('total_xp', 150);
+    const { data } = await sb.from('profiles').select('total_xp,quizzes_played').gte('total_xp', 1);
     const rows = data || [];
     const t = rows.reduce((a, p) => ({ xp: a.xp + (p.total_xp || 0), q: a.q + (p.quizzes_played || 0) }), { xp: 0, q: 0 });
     return { players: rows.length, totalXP: t.xp, totalQuizzes: t.q };
