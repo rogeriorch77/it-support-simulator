@@ -507,12 +507,12 @@
         : `<span style="color:var(--muted);font-size:.78rem;font-weight:700;width:22px;text-align:center;display:inline-block;">${i + 1}</span>`;
       const avatar = p.github_avatar
         ? `<img src="${p.github_avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;" alt="">`
-        : `<div style="width:28px;height:28px;border-radius:50%;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem;color:var(--muted);flex-shrink:0;">${(p.github_username || '?')[0].toUpperCase()}</div>`;
+        : `<div style="width:28px;height:28px;border-radius:50%;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem;color:var(--muted);flex-shrink:0;">${(p.github_username || 'A')[0].toUpperCase()}</div>`;
       return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);${i === 0 ? 'background:rgba(78,142,247,.03)' : ''}">
         ${rank}
         ${avatar}
         <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:.8rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@${p.github_username || '?'}</div>
+          <div style="font-weight:700;font-size:.8rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@${p.github_username || 'Anonyme'}</div>
           <div style="margin-top:3px;">${badge}</div>
         </div>
         <div style="text-align:right;flex-shrink:0;">${bar}</div>
