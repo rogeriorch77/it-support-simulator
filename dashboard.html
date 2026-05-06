@@ -114,7 +114,16 @@
 
         <!-- XP / LEVEL CARD -->
         <div class="xp-card">
-          <div class="xp-level-icon" id="xpLevelIcon">1</div>
+          <div class="xp-level-icon" id="xpLevelIcon">
+            <svg class="xp-ring-svg" viewBox="0 0 56 56" fill="none">
+              <circle cx="28" cy="28" r="22" stroke="rgba(59,130,246,0.15)" stroke-width="4"/>
+              <circle id="xpRingFill" cx="28" cy="28" r="22"
+                stroke="var(--accent)" stroke-width="4" stroke-linecap="round"
+                stroke-dasharray="138.23" stroke-dashoffset="138.23"
+                transform="rotate(-90 28 28)" style="transition:stroke-dashoffset .6s ease;"/>
+            </svg>
+            <span class="xp-ring-num" id="xpLevelNum">1</span>
+          </div>
           <div class="xp-info">
             <div class="xp-level-header">
               <div class="xp-level-name" id="xpLevelName">Rookie</div>
@@ -235,7 +244,10 @@
       document.getElementById('xpBarFill').style.width = stats.levelPct + '%';
 
       document.getElementById('xpLevelName').textContent = stats.level.name;
-      document.getElementById('xpLevelIcon').textContent = '\u2B50'.repeat(stats.level.stars);
+      const circumference = 138.23;
+      document.getElementById('xpRingFill').style.strokeDashoffset =
+        circumference * (1 - stats.levelPct / 100);
+      document.getElementById('xpLevelNum').textContent = stats.level.stars;
 
       if (stats.nextLvl) {
         document.getElementById('xpNextLabel').textContent =
