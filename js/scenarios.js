@@ -31,7 +31,18 @@ const SCENARIOS = {
       ],
       steps: [
         {
-          question: "Quelle est votre première action ?",
+          question: "Avant toute action, que devez-vous faire en priorité ?",
+          options: [
+            { text: "Vérifier l'identité de l'utilisatrice — demander son matricule employé ou numéro de badge", correct: true, feedback: "Correct ! Avant tout reset de mot de passe, la vérification d'identité est obligatoire. Demandez le matricule, numéro de badge ou toute référence interne permettant de confirmer que l'appelant est bien l'utilisateur concerné. C'est une procédure de sécurité fondamentale contre l'ingénierie sociale." },
+            { text: "Commencer directement le reset — l'urgence prime sur les procédures", correct: false, feedback: "Réinitialiser un mot de passe sans vérification d'identité est une faille de sécurité critique. Un attaquant pourrait usurper l'identité d'un utilisateur légitime par simple appel téléphonique." },
+            { text: "Demander à l'utilisatrice d'envoyer un e-mail depuis sa boîte professionnelle", correct: false, feedback: "Si l'utilisatrice ne peut pas se connecter, elle n'a probablement pas accès à sa messagerie. Cette méthode n'est pas adaptée dans ce contexte." },
+            { text: "Transférer l'appel au responsable hiérarchique pour validation", correct: false, feedback: "Cela rallonge inutilement le traitement. La vérification directe via matricule ou numéro de badge est suffisante et plus rapide." }
+          ],
+          hint: "La vérification d'identité est obligatoire avant tout reset de mot de passe. Utilisez le matricule employé ou numéro de badge comme référence.",
+          callerReply: "Bien sûr, mon matricule est CJ-2047. Je suis claire.petit dans le système."
+        },
+        {
+          question: "Identité vérifiée. Quelle est votre prochaine action ?",
           options: [
             { text: "Lui dire de redémarrer le PC", correct: false, feedback: "Redémarrer ne résoudra pas un mot de passe expiré dans AD." },
             { text: "Ouvrir ADUC (dsa.msc), trouver le compte et réinitialiser le mot de passe", correct: true, feedback: "Correct ! ADUC permet de réinitialiser le mot de passe côté serveur." },
