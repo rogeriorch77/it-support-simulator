@@ -351,6 +351,9 @@
                   <button class="btn btn-outline" onclick="toggleHint()" id="btnHint" data-i18n="show_hint" style="font-size:12px; padding: 6px 14px;">💡 Afficher un indice</button>
                   <span id="cmdSuggest" style="font-size: 12px; color: var(--accent); font-family: monospace; display:none;"></span>
                 </div>
+                <div style="margin-top: 12px;">
+                  <button class="btn btn-primary" id="btnVoirScore" onclick="showStep()" style="display:none; width:100%;">Voir le score →</button>
+                </div>
               </div>
             </div>
 
@@ -574,6 +577,7 @@
       document.getElementById('hintText').textContent = step.hint || '';
       document.getElementById('hintPanel').classList.remove('visible');
       document.getElementById('btnHint').style.display = 'inline-flex';
+      document.getElementById('btnVoirScore').style.display = 'none';
 
       // Terminal command suggestion
       const cmdEl = document.getElementById('cmdSuggest');
@@ -614,7 +618,14 @@
         }
 
         currentStep++;
-        setTimeout(showStep, 2000);
+        if (currentStep >= currentScenario.steps.length) {
+          setTimeout(() => {
+            const btn = document.getElementById('btnVoirScore');
+            if (btn) btn.style.display = 'block';
+          }, 600);
+        } else {
+          setTimeout(showStep, 2000);
+        }
       } else {
         btn.classList.add('wrong');
         btn.style.pointerEvents = 'none';

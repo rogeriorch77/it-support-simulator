@@ -597,7 +597,8 @@
       showFeedback(false, 0);
     }
 
-    sessionResults.push({ q: q.q, isCorrect, xpEarned, diff: q.diff });
+    const correctAnswer = q.correct.map(i => q.opts[i]).join(' / ');
+    sessionResults.push({ q: q.q, isCorrect, xpEarned, diff: q.diff, correctAnswer });
 
     setTimeout(() => {
       current++;
@@ -661,8 +662,11 @@
     const bd = document.getElementById('result-breakdown');
     bd.innerHTML = sessionResults.map(r =>
       `<div class="rb-row ${r.isCorrect ? 'correct-row' : 'wrong-row'}">
-        <span style="flex:1;font-size:.82rem;">${r.q}</span>
-        <span class="rb-xp">${r.isCorrect ? '+'+r.xpEarned+' XP' : '0 XP'}</span>
+        <div style="flex:1;min-width:0;">
+          <span style="font-size:.82rem;">${r.q}</span>
+          ${!r.isCorrect ? `<div style="margin-top:5px;font-size:.75rem;color:#22c55e;">✓ ${r.correctAnswer}</div>` : ''}
+        </div>
+        <span class="rb-xp" style="flex-shrink:0;margin-left:12px;">${r.isCorrect ? '+'+r.xpEarned+' XP' : '0 XP'}</span>
       </div>`
     ).join('');
   }
