@@ -57,15 +57,19 @@ const Auth = {
   async upsertProfile(user) {
     const displayName = user.user_metadata?.user_name
                      || user.user_metadata?.preferred_username
+                     || user.user_metadata?.full_name
                      || user.user_metadata?.name
                      || user.email?.split('@')[0]
                      || '';
-    await sb.from('profiles').upsert({
+    const payload = {
       id: user.id,
-      github_username: displayName,
-      github_avatar:   user.user_metadata?.avatar_url || '',
+      github_avatar: user.user_metadata?.avatar_url
+                  || user.user_metadata?.picture
+                  || '',
       updated_at: new Date().toISOString()
-    }, { onConflict: 'id' });
+    };
+    if (displayName) payload.github_username = displayName;
+    await sb.from('profiles').upsert(payload, { onConflict: 'id' });
   },
 
   async syncXP(userId) {
