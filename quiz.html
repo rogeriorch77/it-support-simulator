@@ -592,7 +592,7 @@
       else if (selectedOpts.has(i) && !correctSet.has(i)) btn.classList.add('wrong');
     });
 
-    const correctAnswer = q.correct.map(i => q.opts[i]).join(' / ');
+    const correctAnswer = q.correct.map(i => `${['A','B','C','D'][i]} — ${q.opts[i]}`).join(' / ');
     sessionResults.push({ q: q.q, isCorrect, xpEarned, diff: q.diff, correctAnswer });
 
     if (isCorrect) {
