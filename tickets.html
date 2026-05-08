@@ -245,6 +245,8 @@
     let currentCatFilter = 'all';
     let currentPrioFilter = 'all';
     let selectedTicket  = null;
+    const _authCache = JSON.parse(localStorage.getItem('_authCache') || 'null');
+    let user = _authCache?.name || 'Admin IT';
 
     // ---- LEVEL HELPERS ----
     const levelClass = { 'N1 Facile': 'lvl-n1f', 'N1 Moyen': 'lvl-n1m', 'N2 Moyen': 'lvl-n2m', 'N2 Difficile': 'lvl-n2d' };
@@ -347,7 +349,7 @@
       const bar = document.getElementById('ticketActionsBar');
       let html = '';
       if (selectedTicket.status === 'open') {
-        html += `<button class="btn btn-primary" onclick="changeStatus('progress')">${t('take_ticket')}</button>`;
+        html += `<button class="btn btn-primary" onclick="changeStatus('progress'); resolveInTerminal();">${t('take_ticket')}</button>`;
       }
       if (selectedTicket.status === 'progress') {
         html += `<button class="btn btn-success" onclick="resolveInTerminal()">&#9654; Résoudre via Terminal</button>`;
