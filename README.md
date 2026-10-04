@@ -36,6 +36,17 @@
 
 ---
 
+## V2 planning
+
+Future learning-experience ideas are documented separately from the current implementation:
+
+- [V2 Product Direction](docs/V2-VISION.md)
+- [RUNA Tutor](docs/RUNA-TUTOR.md)
+- [Learning Telemetry](docs/TELEMETRY.md)
+- [Learner Feedback](docs/FEEDBACK.md)
+
+---
+
 ## Modules
 
 | Module | Description |
