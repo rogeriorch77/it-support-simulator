@@ -1,4 +1,7 @@
-# RUNA Tutor
+# RUNA Tutor — CONCEITO HISTÓRICO
+
+> **Nota de escopo — 27/10/2026 — alteração solicitada pelo autor: Rogério Rocha.** Este documento contém a proposta original de tutoria contextual sob o nome RUNA, preservada para consulta, **não um recurso integrado nem nome atual de produto**. Primeiro estabilizar o **IT Support Simulator v1.1**; após isso, explorar **BEEMIM** como possível tutor contextual, sob aprovação e testes próprios. A identidade de produto de IA anteriormente cogitada foi retirada por homônimo comercial em software e prevenção de conflitos; nenhuma substituta foi aprovada. Documento histórico não autoriza rebrand nem alterações de código.
+
 
 ## Purpose
 
