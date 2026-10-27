@@ -236,6 +236,8 @@
     .tb-meta  { font-size: 12px; color: var(--text-muted); }
     .tb-actions { display: flex; gap: 8px; flex-shrink: 0; }
   </style>
+  <link rel="stylesheet" href="css/avatars.css">
+  <link rel="stylesheet" href="css/profile.css">
 </head>
 <body>
   <div class="sidebar-overlay"></div>
@@ -559,7 +561,11 @@
   <script src="js/app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
-  <script src="js/auth.js"></script>
+<script src="js/safe-dom.js"></script>
+  <script src="js/xp-levels.js"></script>
+  <script src="js/avatar-assets.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/profile.js"></script>
   <script src="js/terminal.js"></script>
   <script>
 
@@ -882,9 +888,9 @@
         banner.id = 'activeBanner';
         banner.innerHTML = `
           <div style="flex:1">
-            <div class="tb-label">&#9874; Résolution en cours — Ticket #${ticket.id}</div>
-            <div class="tb-issue">${ticket.issue}</div>
-            <div class="tb-meta">${ticket.caller} &middot; ${ticket.dept}</div>
+            <div class="tb-label">&#9874; Résolution en cours — Ticket #${SafeDom.escape(ticket.id)}</div>
+            <div class="tb-issue">${SafeDom.escape(ticket.issue)}</div>
+            <div class="tb-meta">${SafeDom.escape(ticket.caller)} &middot; ${SafeDom.escape(ticket.dept)}</div>
           </div>
           <div class="tb-actions">
             <button class="btn btn-success" id="btnFinishTicket">&#10003; Marquer résolu</button>
@@ -911,7 +917,7 @@
         Terminal.printLine('Microsoft Windows [Version 10.0.22631.3296]', '');
         Terminal.printLine('(c) Microsoft Corporation. All rights reserved.', '');
         Terminal.blank();
-        Terminal.printLine(`Connecté à : <span class="term-val">${hostname}</span> &mdash; <span class="term-warn">Ticket #${ticket.id} actif</span>`, 'term-info');
+        Terminal.printLine(`Connecté à : <span class="term-val">${SafeDom.escape(hostname)}</span> &mdash; <span class="term-warn">Ticket #${SafeDom.escape(ticket.id)} actif</span>`, 'term-info');
         Terminal.blank();
 
         document.getElementById('btnFinishTicket').addEventListener('click', () => {

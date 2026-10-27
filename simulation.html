@@ -179,6 +179,8 @@
     .score-stat .val { font-size: 22px; font-weight: 700; display: block; }
     .score-stat .lbl { font-size: 12px; color: var(--text-muted); }
   </style>
+  <link rel="stylesheet" href="css/avatars.css">
+  <link rel="stylesheet" href="css/profile.css">
 </head>
 <body>
   <div class="sidebar-overlay"></div>
@@ -373,7 +375,11 @@
   <script src="js/app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
-  <script src="js/auth.js"></script>
+<script src="js/safe-dom.js"></script>
+  <script src="js/xp-levels.js"></script>
+  <script src="js/avatar-assets.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/profile.js"></script>
   <script src="js/scenarios.js"></script>
   <script src="js/progress.js"></script>
   <script>
@@ -426,14 +432,18 @@
 
       grid.innerHTML = filtered.map(s => `
         <div class="scenario-card ${completedIds.includes(s.id) ? 'completed' : ''}"
-             onclick="startScenario('${s.id}')">
+             data-scenario-id="${SafeDom.escape(s.id)}">
           ${diffBadgeHTML(s)}
-          <div class="sc-cat">${catLabel(s.category)}</div>
-          <div class="sc-title">${s.issue}</div>
-          <div class="sc-caller">&#128100; ${s.caller} — ${s.dept}</div>
+          <div class="sc-cat">${SafeDom.escape(catLabel(s.category))}</div>
+          <div class="sc-title">${SafeDom.escape(s.issue)}</div>
+          <div class="sc-caller">&#128100; ${SafeDom.escape(s.caller)} — ${SafeDom.escape(s.dept)}</div>
           ${completedIds.includes(s.id) ? '<span class="sc-check">&#10003;</span>' : ''}
         </div>
       `).join('');
+
+      grid.querySelectorAll('[data-scenario-id]').forEach(card => {
+        card.addEventListener('click', () => startScenario(card.dataset.scenarioId));
+      });
 
       // Update filter pills
       document.querySelectorAll('.cat-pill').forEach(p => {
@@ -502,7 +512,11 @@
       const name = from === 'caller' ? currentScenario.caller : userName;
       const div = document.createElement('div');
       div.className = 'bubble ' + (from === 'caller' ? 'caller' : 'tech');
-      div.innerHTML = `<div class="bname">${name}</div>${text}`;
+      const label = document.createElement('div');
+      label.className = 'bname';
+      label.textContent = name;
+      div.appendChild(label);
+      div.appendChild(document.createTextNode(String(text ?? '')));
       chat.appendChild(div);
       chat.scrollTop = chat.scrollHeight;
     }
@@ -525,10 +539,10 @@
         <div>
           <button class="option-btn" data-idx="${i}" data-correct="${opt.correct}">
             <span class="option-letter">${letters[i]}</span>
-            <span>${opt.text}</span>
+            <span>${SafeDom.escape(opt.text)}</span>
           </button>
           <div class="option-feedback ${opt.correct ? 'correct' : 'wrong'}" id="fb-${i}">
-            ${opt.correct ? '✓ ' : '✗ '} ${opt.feedback || ''}
+            ${opt.correct ? '✓ ' : '✗ '} ${SafeDom.escape(opt.feedback || '')}
           </div>
         </div>
       `).join('');
@@ -651,7 +665,7 @@
           const chip = document.createElement('div');
           chip.className = 'new-badge-chip';
           const name = lang === 'en' ? b.nameEn : lang === 'pt' ? b.namePt : b.nameFr;
-          chip.innerHTML = b.icon + ' ' + name;
+          chip.innerHTML = b.icon + ' ' + SafeDom.escape(name || b.name || '');
           badgesList.appendChild(chip);
         });
       }

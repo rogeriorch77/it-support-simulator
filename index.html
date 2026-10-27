@@ -20,14 +20,8 @@
   <meta name="twitter:title" content="IT Support Simulator — Entraîne-toi. Domine le classement.">
   <meta name="twitter:description" content="Simule des appels N1/N2, résous des tickets réels et grimpe dans le classement.">
   <meta name="twitter:image" content="https://rogeriorch77.github.io/it-support-simulator/og-image.png">
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VQCQT3971F"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-VQCQT3971F');
-  </script>
+  <!-- Analytics disabled in v1.1 security staging until prior consent is implemented.
+       Do not re-enable automatic Google Analytics loading. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
   <style>
@@ -271,6 +265,123 @@
       flex: 1; min-height: 0; overflow-y: auto;
       margin-bottom: 12px;
     }
+
+
+    /* v1.1: a true Top 3 showcase — leaderboard positions live on ranking.html. */
+    .lb-wrap { flex: 1; min-height: 0; }
+    .lb-head { align-items: center; gap: 12px; }
+    .lb-head-l { min-width: 0; }
+    .lb-title { font-size: .93rem; color: #e8f1fb; }
+    .lb-link {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 8px 13px; border: 1px solid rgba(88,192,224,.3);
+      border-radius: 8px; background: rgba(88,192,224,.07);
+      color: #86d9f4; font-size: .73rem; white-space: nowrap;
+      transition: background .18s, border-color .18s, color .18s;
+    }
+    .lb-link:hover, .lb-link:focus-visible {
+      color: #fff; background: rgba(88,192,224,.14); border-color: var(--cyan);
+    }
+    .lb-card {
+      flex: 1; max-height: 188px; min-height: 125px;
+      display: flex; flex-direction: column; overflow: hidden;
+      padding: 9px; margin-bottom: 10px;
+      border: 1px solid var(--border2);
+      background: linear-gradient(145deg,#101821 0%,#0e141b 80%);
+    }
+    #lbBody { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+    .lb-podium {
+      display: grid; grid-template-columns: repeat(3,minmax(0,1fr));
+      flex: 1; min-height: 0; gap: 9px;
+    }
+    .lb-podium-item {
+      display: flex; align-items: center; gap: 12px;
+      min-width: 0; min-height: 102px; padding: 13px 15px;
+      background: linear-gradient(115deg,rgba(var(--podium-rgb),.105),#141d26 50%);
+      border: 1px solid rgba(var(--podium-rgb),.38);
+      border-left: 3px solid var(--podium-accent);
+      border-radius: 9px; color: inherit; text-decoration: none;
+      position: relative; overflow: hidden;
+      transition: background .18s, border-color .18s, transform .18s;
+    }
+    .lb-podium-item::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(circle at 8% 20%,rgba(var(--podium-rgb),.11),transparent 55%);
+    }
+    .lb-podium-item--leader {
+      background: linear-gradient(112deg,rgba(244,198,98,.16),#151d25 63%);
+      border-color: rgba(244,198,98,.53); border-left-width: 4px;
+    }
+    .lb-podium-item:hover, .lb-podium-item:focus-visible {
+      background-color: rgba(var(--podium-rgb),.12);
+      border-color: var(--podium-accent);
+      transform: translateY(-1px);
+    }
+    .lb-podium-rank {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      flex: 0 0 34px; position: relative; z-index: 1;
+    }
+    .lb-podium-medal { font-size: 1.65rem; line-height: 1.05; }
+    .lb-podium-position {
+      font-size: .57rem; font-weight: 800; letter-spacing: .11em;
+      color: var(--podium-accent);
+    }
+    .lb-podium-avatar {
+      position: relative; z-index: 1;
+      flex: 0 0 43px; width: 43px; height: 43px;
+      display: flex; align-items: center; justify-content: center;
+      border: 2px solid rgba(var(--podium-rgb),.65); border-radius: 50%;
+      background: #263344; color: #e5eaf4; object-fit: cover;
+      font-size: .9rem; font-weight: 700;
+    }
+    .lb-podium-info { position: relative; z-index: 1; min-width: 0; flex: 1; }
+    .lb-podium-name {
+      font-weight: 800; color: #edf3fb; font-size: .84rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 7px;
+    }
+    .lb-podium-level {
+      display: inline-block; border-radius: 5px;
+      font-size: .62rem; font-weight: 700; padding: 2px 8px;
+    }
+    .lb-podium-score {
+      position: relative; z-index: 1; display: flex; flex-direction: column;
+      align-items: flex-end; gap: 5px; flex: 0 0 auto;
+    }
+    .lb-podium-xp {
+      white-space: nowrap; font-size: 1rem; font-weight: 800;
+      letter-spacing: -.03em;
+    }
+    .lb-podium-status {
+      white-space: nowrap; font-size: .58rem; font-weight: 800;
+      letter-spacing: .1em; color: var(--podium-accent);
+    }
+    .lb-loading { align-self: center; width: 100%; padding: 25px 15px; }
+    @media (max-width: 1080px) and (min-width: 741px) {
+      .lb-podium-item { gap: 7px; padding: 10px 9px; }
+      .lb-podium-rank { flex-basis: 27px; }
+      .lb-podium-avatar { flex-basis: 36px; width: 36px; height: 36px; }
+      .lb-podium-name { font-size: .73rem; }
+      .lb-podium-xp { font-size: .82rem; }
+      .lb-podium-status { font-size: .52rem; }
+    }
+    @media (max-width: 740px) {
+      .lb-head { align-items: flex-start; flex-wrap: wrap; }
+      .lb-podium { display: flex; flex-direction: column; }
+      .lb-card { flex: none; max-height: none; min-height: 0; }
+      .lb-podium-item { min-height: 82px; padding: 10px 12px; }
+      .lb-podium-avatar { width: 39px; height: 39px; flex-basis: 39px; }
+      .lb-podium-medal { font-size: 1.4rem; }
+      .lb-podium-name { font-size: .78rem; }
+      .lb-podium-xp { font-size: .89rem; }
+      .lb-wrap { flex: none; }
+    }
+    @media (max-height: 750px) and (min-width: 741px) {
+      html, body { height: auto; min-height: 100%; overflow-y: auto; }
+      .land-wrap { height: auto; min-height: 100vh; overflow: visible; }
+      .lb-wrap { flex: none; }
+      .lb-card { flex: none; }
+    }
+
     /* custom scrollbar inside lb-card */
     .lb-card::-webkit-scrollbar { width: 5px; }
     .lb-card::-webkit-scrollbar-track { background: transparent; }
@@ -299,6 +410,25 @@
     }
     .land-footer a { color: var(--cyan); text-decoration: none; }
     .land-footer a:hover { text-decoration: underline; }
+
+    /* Preserve the full podium on shorter desktop windows without shrinking cards universally. */
+    @media (max-height: 900px) and (min-width: 741px) {
+      .hero { padding: 14px 20px 11px; }
+      .hero-prompt { margin-bottom: 5px; }
+      .hero-badge { margin-bottom: 8px; padding: 3px 10px; }
+      .hero-title { font-size: clamp(1.6rem, 3vw, 2.35rem); margin-bottom: 7px; }
+      .hero-sub { line-height: 1.4; font-size: .79rem; margin-bottom: 11px; }
+      .btn-hero { padding: 9px 20px; font-size: .8rem; }
+      .features { padding-top: 8px; gap: 8px; }
+      .feat { padding: 10px 12px; }
+      .feat-desc { line-height: 1.4; }
+      .stats-wrap { padding-top: 7px; padding-bottom: 7px; }
+      .stat { padding: 11px 16px; }
+      .stat-val { font-size: 1.5rem; }
+      .lb-wrap { padding-top: 6px; }
+      .lb-head { margin-bottom: 6px; }
+      .lb-card { margin-bottom: 6px; }
+    }
 
     @media (max-width: 800px) {
       .features { grid-template-columns: repeat(2, 1fr); }
@@ -330,6 +460,7 @@
       .btn-hero  { width: 100%; max-width: 300px; justify-content: center; }
     }
   </style>
+  <link rel="stylesheet" href="css/avatars.css">
 </head>
 <body>
 <div class="land-wrap">
@@ -462,7 +593,7 @@
     <div class="lb-head">
       <div class="lb-head-l">
         <span style="font-size:1.1rem;">🏆</span>
-        <span class="lb-title">Top 20 — XP total</span>
+        <span class="lb-title">Podium — Top 3</span>
       </div>
       <a class="lb-link" href="ranking.html">Voir le classement complet →</a>
     </div>
@@ -487,61 +618,67 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/config.js"></script>
+<script src="js/safe-dom.js"></script>
+<script src="js/xp-levels.js"></script>
+  <script src="js/avatar-assets.js"></script>
 <script src="js/auth.js"></script>
 <script>
   const MEDALS = ['🥇','🥈','🥉'];
-  const LB_LEVELS = [
-    { min:0,     name:'Débutant', bg:'rgba(90,122,150,.15)', color:'#5a7a96' },
-    { min:500,   name:'Junior',   bg:'rgba(78,142,247,.12)', color:'#4e8ef7' },
-    { min:2000,  name:'Confirmé', bg:'rgba(57,211,83,.12)',  color:'#39d353' },
-    { min:5000,  name:'Senior',   bg:'rgba(155,114,245,.12)',color:'#9b72f5' },
-    { min:10000, name:'Expert',   bg:'rgba(240,136,62,.12)', color:'#f0883e' },
-  ];
   function lbGetLevel(xp) {
-    let l = LB_LEVELS[0];
-    for (const lv of LB_LEVELS) { if (xp >= lv.min) l = lv; }
-    return l;
+    return XPLevels.getLevel(xp);
   }
   function levelBadge(xp) {
     const l = lbGetLevel(xp);
-    return `<span style="background:${l.bg};color:${l.color};border:1px solid ${l.color}33;border-radius:5px;padding:2px 8px;font-size:.62rem;font-weight:700;letter-spacing:.06em;font-family:'JetBrains Mono',monospace;">${l.name}</span>`;
+    return `<span style="background:${l.bg};color:${l.color};border:1px solid ${l.border};border-radius:5px;padding:2px 8px;font-size:.62rem;font-weight:700;letter-spacing:.06em;font-family:'JetBrains Mono',monospace;">${l.name}</span>`;
   }
   function xpBar(xp) {
-    const l = lbGetLevel(xp);
-    const idx = LB_LEVELS.indexOf(l);
-    const next = LB_LEVELS[idx + 1];
-    const pct = next ? Math.min(100, Math.round((xp - l.min) / (next.min - l.min) * 100)) : 100;
-    return `<div style="font-weight:700;font-size:.8rem;color:${l.color};font-family:'JetBrains Mono',monospace;">${xp.toLocaleString('fr')} XP</div>
-            <div style="height:3px;background:#1e2d3d;border-radius:2px;margin-top:4px;width:60px;"><div style="height:100%;width:${pct}%;background:${l.color};border-radius:2px;"></div></div>`;
+    const level = XPLevels.getLevel(xp);
+    const pct = XPLevels.getProgress(xp);
+    return `<div style="font-weight:700;font-size:.8rem;color:${level.color};font-family:'JetBrains Mono',monospace;">${xp.toLocaleString('fr')} XP</div>
+            <div style="height:3px;background:#1e2d3d;border-radius:2px;margin-top:4px;width:60px;"><div style="height:100%;width:${pct}%;background:${level.color};border-radius:2px;"></div></div>`;
   }
 
+
+
+  const RANK_STYLES = [
+    { color:'#F4C662', rgb:'244,198,98', status:'LEADER', className:'lb-podium-item--leader' },
+    { color:'#C1D0E2', rgb:'193,208,226', status:'2E PLACE', className:'' },
+    { color:'#DBA57F', rgb:'219,165,127', status:'3E PLACE', className:'' }
+  ];
+  function podiumCard(profile, position) {
+    const xp = Math.max(0, Number(profile.total_xp) || 0);
+    const level = XPLevels.getLevel(xp);
+    const rank = RANK_STYLES[position];
+    const clean = SafeDom.escape(AvatarAssets.displayName(profile));
+    const avatar = AvatarAssets.render(profile, 'lb-podium-avatar');
+    return `<a class="lb-podium-item ${rank.className}" href="ranking.html"
+      style="--podium-accent:${rank.color};--podium-rgb:${rank.rgb}"
+      aria-label="${position + 1}e place : ${clean}, ${xp.toLocaleString('fr')} XP">
+      <span class="lb-podium-rank" aria-hidden="true">
+        <span class="lb-podium-medal">${MEDALS[position]}</span>
+        <span class="lb-podium-position">N° 0${position + 1}</span>
+      </span>
+      ${avatar}
+      <span class="lb-podium-info">
+        <span class="lb-podium-name" style="display:block">@${clean}</span>
+        <span class="lb-podium-level" style="color:${level.color};background:${level.bg};border:1px solid ${level.border}">${SafeDom.escape(level.name)}</span>
+      </span>
+      <span class="lb-podium-score">
+        <strong class="lb-podium-xp" style="color:${level.color}">${xp.toLocaleString('fr')} XP</strong>
+        <span class="lb-podium-status">${rank.status}</span>
+      </span>
+    </a>`;
+  }
   async function loadRanking() {
-    const rows = await Auth.getRanking(20);
+    const rows = await Auth.getRanking(3);
     const lbBody = document.getElementById('lbBody');
     if (!rows || !rows.length) {
-      lbBody.innerHTML = '<div class="lb-loading"><div class="lb-load-text">Aucun joueur pour l\'instant.</div><div class="lb-load-sub">Sois le premier à rejoindre le classement !</div></div>';
+      lbBody.innerHTML = '<div class="lb-loading"><div class="lb-load-text">Aucun joueur pour l’instant.</div><div class="lb-load-sub">Sois le premier à rejoindre le classement !</div></div>';
       return;
     }
-    lbBody.innerHTML = rows.map((p, i) => {
-      const xp = p.total_xp || 0;
-      const badge = levelBadge(xp);
-      const bar = xpBar(xp);
-      const rank = i < 3
-        ? `<span style="font-size:1.1rem;line-height:1;width:22px;text-align:center;display:inline-block;">${MEDALS[i]}</span>`
-        : `<span style="color:var(--muted);font-size:.78rem;font-weight:700;width:22px;text-align:center;display:inline-block;">${i + 1}</span>`;
-      const avatar = p.github_avatar
-        ? `<img src="${p.github_avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;" alt="">`
-        : `<div style="width:28px;height:28px;border-radius:50%;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.75rem;color:var(--muted);flex-shrink:0;">${(p.github_username || 'A')[0].toUpperCase()}</div>`;
-      return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);${i === 0 ? 'background:rgba(78,142,247,.03)' : ''}">
-        ${rank}
-        ${avatar}
-        <div style="flex:1;min-width:0;">
-          <div style="font-weight:700;font-size:.8rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@${p.github_username || 'Anonyme'}</div>
-          <div style="margin-top:3px;">${badge}</div>
-        </div>
-        <div style="text-align:right;flex-shrink:0;">${bar}</div>
-      </div>`;
-    }).join('');
+    lbBody.innerHTML = `<div class="lb-podium" aria-label="Les trois premiers du classement">
+      ${rows.slice(0, 3).map((p, i) => podiumCard(p, i)).join('')}
+    </div>`;
   }
 
   async function loadStats() {

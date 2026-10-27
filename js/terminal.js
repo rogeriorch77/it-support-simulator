@@ -41,7 +41,16 @@ const Terminal = (() => {
 
   // ---- SET CONTEXT ----
   function setContext(newCtx) {
-    ctx = Object.assign({}, ctx, newCtx);
+    const safeContext = { ...newCtx };
+    // Values used in simulated terminal markup must not contain HTML metacharacters.
+    for (const key of Object.keys(safeContext)) {
+      if (typeof safeContext[key] === 'string') {
+        safeContext[key] = safeContext[key].replace(/[<>&"'`]/g, '').slice(0, 256);
+      }
+    }
+    if ('hostname' in safeContext) safeContext.hostname = String(safeContext.hostname).replace(/[^a-zA-Z0-9.-]/g, '').slice(0, 63) || 'PC-USER-01';
+    if ('username' in safeContext) safeContext.username = String(safeContext.username).replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, 64) || 'user';
+    ctx = Object.assign({}, ctx, safeContext);
     currentDir = `C:\\Users\\${ctx.username}`;
     if (promptEl) promptEl.textContent = `${ctx.hostname}>`;
   }
@@ -101,7 +110,7 @@ const Terminal = (() => {
   function printPrompt(cmd) {
     const line = document.createElement('div');
     line.className = 'term-line term-cmd';
-    line.innerHTML = `<span class="term-prompt">${ctx.hostname}&gt;</span> ${escHtml(cmd)}`;
+    line.innerHTML = `<span class="term-prompt">${escHtml(ctx.hostname)}&gt;</span> ${escHtml(cmd)}`;
     outputEl.appendChild(line);
     outputEl.scrollTop = outputEl.scrollHeight;
   }
@@ -146,7 +155,7 @@ const Terminal = (() => {
       case 'chkdsk':     cmdChkdsk(args); break;
       case 'dir':        cmdDir(); break;
       case 'cd':         cmdCd(args); break;
-      case 'echo':       printLine(args.join(' ')); blank(); break;
+      case 'echo':       printLine(escHtml(args.join(' '))); blank(); break;
       case 'ver':        printLine('Microsoft Windows [Version 10.0.19045.4046]'); blank(); break;
       case 'date':       printLine('Le date du système est : ' + new Date().toLocaleDateString('fr-FR')); blank(); break;
       case 'time':       printLine('Heure actuelle : ' + new Date().toLocaleTimeString('fr-FR')); blank(); break;
