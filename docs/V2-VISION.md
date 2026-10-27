@@ -1,5 +1,8 @@
 # IT Support Simulator V2 - Product Direction
 
+> **Estado histórico de planejamento — 27/10/2026 — alteração solicitada pelo autor: Rogério Rocha.** O texto original descreve uma ideia de RUNA Tutor, **nome que não deve ser promovido como produto atual**. A prioridade aprovada é estabilização da **v1.1**; depois poderá ser estudada integração com **BEEMIM** para ajuda contextual, sem compromisso de implementação. A antiga identidade comercial da interface principal de IA foi retirada por conflito homônimo de software e prevenção de conflitos; não aprovar substituição por inferência. Regra: verificar [registro de naming](https://github.com/rogeriorch77/Rocha-Group-AG/blob/main/naming/REGISTRO.md) antes de propor uma identidade.
+
+
 Status: planning document for a future improved version. It does not claim that the features below are implemented today.
 
 ## Goal
