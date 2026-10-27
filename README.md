@@ -36,6 +36,10 @@
 
 ---
 
+## Estado dos planos de IA — 27/10/2026
+
+> **Atualização documental solicitada pelo autor: Rogério Rocha.** O rótulo **RUNA Tutor** abaixo é legado, e **não representa uma marca ou integração aprovada**. A prioridade do IT Support Simulator é **estabilizar a v1.1**; somente depois será avaliado o assistente **BEEMIM** como possibilidade de tutoria contextual, sem afirmar integração implementada. A marca antiga da interface principal do ecossistema de IA foi retirada por uso comercial homônimo e prevenção de conflitos futuros; não a reapresentar. Referência canônica: [Registro de naming](https://github.com/rogeriorch77/Rocha-Group-AG/blob/main/naming/REGISTRO.md).
+
 ## V2 planning
 
 Future learning-experience ideas are documented separately from the current implementation:
