@@ -91,6 +91,8 @@
     .level-bar { height:12px; background:var(--border); border-radius:6px; overflow:hidden; }
     .level-fill { height:100%; background:linear-gradient(90deg,#7c3aed,#4f46e5); border-radius:6px; transition:width 1s ease; }
   </style>
+  <link rel="stylesheet" href="css/avatars.css">
+  <link rel="stylesheet" href="css/profile.css">
 </head>
 <body>
   <div class="sidebar-overlay"></div>
@@ -133,7 +135,7 @@
           <div class="quiz-start-hero">
             <h2 style="font-size:1.6rem;margin-bottom:4px;">&#9889; Quiz Technique IT</h2>
             <p style="color:var(--text-muted);margin-bottom:20px;">15 questions aléatoires · Chrono par question · Bonus vitesse</p>
-            <div class="quiz-xp-total"><span class="xp-icon">⚡</span><span id="totalXpDisplay">0</span> XP Total</div>
+            <div class="quiz-xp-total" id="quizXpTotal"><span class="xp-icon">⚡</span><span id="totalXpDisplay">0</span> XP Total</div>
             <div class="quiz-level-label" id="levelLabel">Niveau 1 — Débutant</div>
             <div class="level-progress-wrap" style="max-width:360px;margin:0 auto 24px;">
               <div class="level-info"><span id="lvlFrom">0 XP</span><span id="lvlTo">500 XP</span></div>
@@ -223,7 +225,11 @@
   <script src="js/app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
-  <script src="js/auth.js"></script>
+<script src="js/safe-dom.js"></script>
+  <script src="js/xp-levels.js"></script>
+  <script src="js/avatar-assets.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/profile.js"></script>
   <script>
   // ── QUESTIONS DATABASE ──────────────────────────────────────────────────
   const ALL_QUESTIONS = [
@@ -407,6 +413,26 @@
   function saveState() { try { localStorage.setItem(LS_QUIZ, JSON.stringify(state)); } catch(e){} }
   let state = loadState();
 
+  // Keep the tier badge, XP total and progress bars in one accessible visual palette.
+  // Quiz scores stay stored in the existing quiz localStorage until server migration.
+  function applyLevelTheme(xp) {
+    const lvl = XPLevels.getLevel(xp);
+    const pill = document.getElementById('topXP');
+    const main = document.getElementById('quizXpTotal');
+    for (const el of [pill, main]) {
+      el.style.background = lvl.bg;
+      el.style.border = '1px solid ' + lvl.border;
+      el.style.boxShadow = 'none';
+      el.style.color = lvl.color;
+    }
+    for (const id of ['levelLabel','rLvlLabel','resultXpTotal']) {
+      document.getElementById(id).style.color = lvl.color;
+    }
+    for (const id of ['lvlBar','rLvlBar']) {
+      document.getElementById(id).style.background = lvl.color;
+    }
+  }
+
   // ── QUIZ STATE ───────────────────────────────────────────────────────────
   let questions = [];
   let current = 0;
@@ -429,6 +455,7 @@
 
   function refreshStartScreen() {
     const lvl = getLevel(state.totalXP);
+    applyLevelTheme(state.totalXP);
     const nextLvl = LEVELS[LEVELS.indexOf(lvl) + 1];
     document.getElementById('totalXpDisplay').textContent = state.totalXP.toLocaleString('fr');
     document.getElementById('levelLabel').textContent = `Niveau ${LEVELS.indexOf(lvl)+1} — ${lvl.name}`;
@@ -501,7 +528,7 @@
     document.getElementById('optionsGrid').innerHTML = q.opts.map((opt, i) =>
       `<button class="option-btn" id="opt${i}" onclick="selectOpt(${i})">
         <span class="opt-letter">${letters[i]}</span>
-        <span>${opt}</span>
+        <span>${SafeDom.escape(opt)}</span>
       </button>`
     ).join('');
 
@@ -659,6 +686,7 @@
     document.getElementById('topXP').textContent = `⚡ ${state.totalXP.toLocaleString('fr')} XP`;
 
     const lvl = getLevel(state.totalXP);
+    applyLevelTheme(state.totalXP);
     const nextLvl = LEVELS[LEVELS.indexOf(lvl) + 1];
     const pct = nextLvl ? Math.min(100, Math.round((state.totalXP - lvl.min) / (nextLvl.min - lvl.min) * 100)) : 100;
     document.getElementById('rLvlLabel').textContent = `Niveau ${LEVELS.indexOf(lvl)+1} — ${lvl.name}`;
@@ -670,8 +698,8 @@
     bd.innerHTML = sessionResults.map(r =>
       `<div class="rb-row ${r.isCorrect ? 'correct-row' : 'wrong-row'}">
         <div style="flex:1;min-width:0;">
-          <span style="font-size:.82rem;">${r.q}</span>
-          ${!r.isCorrect ? `<div style="margin-top:5px;font-size:.75rem;color:#22c55e;">✓ ${r.correctAnswer}</div>` : ''}
+          <span style="font-size:.82rem;">${SafeDom.escape(r.q)}</span>
+          ${!r.isCorrect ? `<div style="margin-top:5px;font-size:.75rem;color:#22c55e;">✓ ${SafeDom.escape(r.correctAnswer)}</div>` : ''}
         </div>
         <span class="rb-xp" style="flex-shrink:0;margin-left:12px;">${r.isCorrect ? '+'+r.xpEarned+' XP' : '0 XP'}</span>
       </div>`
