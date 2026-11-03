@@ -1,23 +1,23 @@
-# Learner Feedback and Rating
+# Learner Feedback and Rating — future design
+
+**Status:** V2 proposal; does not change the current v1.1/B8 application or authorize collection.
 
 ## Goal
 
-Feedback should produce useful product signal without forcing the learner to submit a rating just to continue using the simulator.
+Feedback should reveal useful learning problems without forcing a learner to rate a product, disclose unnecessary personal details or provide data to model training.
 
-A popup that cannot be closed until the user rates the product would bias the dataset and encourage low-quality or hostile responses.
+A popup that cannot be closed until the learner gives a rating biases responses and harms the learning experience.
 
 ## Suggested timing
 
-Ask after meaningful use, for example:
+Ask gently and optionally after meaningful use, for example:
+- after the first completed simulation;
+- after two scenarios or a return visit;
+- after an independently approved **BEEMIM Tutor** is actually used enough for a meaningful evaluation.
 
-- after completing the first scenario;
-- after completing two scenarios;
-- after returning for a later session;
-- after using RUNA Tutor enough to evaluate it.
+Do not prompt after every action. The future assistant should never be needed to submit a rating or continue using the simulator.
 
-Do not ask after every action.
-
-## Suggested prompt
+## Suggested UI copy
 
 ```text
 How was your learning experience?
@@ -30,28 +30,26 @@ What could we improve?
 [Send]  [Not now]
 ```
 
-## Community copy
+For the current French-first interface, localize copy naturally and test its accessibility before implementing.
 
-Candidate message after a rating:
+Candidate community message:
 
 > Your star helps build a constellation of new IT learners.
 
-For the current French-first interface, localize the copy naturally rather than translating word-for-word.
+A separate optional GitHub-star suggestion may encourage community discovery, but **the internal product rating and GitHub star are distinct actions**. Neither should influence XP, progress, user trust or access.
 
-A separate optional prompt can invite a GitHub star:
+## Suggested fields (not collected by this document)
 
-> Enjoying IT Support Simulator? A GitHub star helps more learners discover the project.
+- general satisfaction and perceived difficulty;
+- clarity of an active scenario;
+- usefulness of BEEMIM Tutor **only if the learner opted in and the future tool was actually used**;
+- optional free-text comment, subject to a separate privacy policy;
+- scenario/module version, completion state and limited aggregate context.
 
-Internal product rating and GitHub star should remain separate actions.
+Minimize identifiers and provide a way to decline without consequences.
 
-## Useful feedback fields
+## Data governance
 
-- overall rating;
-- scenario difficulty perception;
-- RUNA Tutor usefulness if used;
-- optional free-text comment;
-- scenario/module context;
-- app version;
-- whether the user completed the scenario.
+Feedback is a voluntary product signal, **not an XP gate, automated eligibility score or training corpus**. Do not feed personal comments, chat exchanges, avatars, photos or private histories into LUARUM or other model training by default.
 
-Feedback must remain a product signal, not an XP gate or a requirement for continued access.
+Any future storage, reporting, retention, export, deletion or research reuse requires independent approval, technical controls and privacy assessment. See [learning telemetry](TELEMETRY.md), [V2 plan](V2-VISION.md) and [BEEMIM Tutor concept](BEEMIM-TUTOR.md).

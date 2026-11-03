@@ -36,18 +36,22 @@
 
 ---
 
-## Estado dos planos de IA — 27/10/2026
+## Current priority and future assistant status — 03/11/2026
 
-> **Atualização documental solicitada pelo autor: Rogério Rocha.** O rótulo **RUNA Tutor** abaixo é legado, e **não representa uma marca ou integração aprovada**. A prioridade do IT Support Simulator é **estabilizar a v1.1**; somente depois será avaliado o assistente **BEEMIM** como possibilidade de tutoria contextual, sem afirmar integração implementada. A marca antiga da interface principal do ecossistema de IA foi retirada por uso comercial homônimo e prevenção de conflitos futuros; não a reapresentar. Referência canônica: [Registro de naming](https://github.com/rogeriorch77/Rocha-Group-AG/blob/main/naming/REGISTRO.md).
+The immediate priority is **stabilization of v1.1 / B8**. Work on technological avatars, pseudonyms, first-visit experience and related validation is tracked separately in [Draft PR #2](https://github.com/rogeriorch77/it-support-simulator/pull/2); check its current status before making claims about released features.
+
+A possible **BEEMIM Tutor** is a future **V2 opt-in contextual teaching concept** only. It is **not implemented, enabled or connected**. A future model or assistant must never own grading, XP, ranking, authentication, fraud controls or completion decisions. This repository remains an independent educational project and its public documentation requires no access to private project resources.
 
 ## V2 planning
 
 Future learning-experience ideas are documented separately from the current implementation:
 
 - [V2 Product Direction](docs/V2-VISION.md)
-- [RUNA Tutor](docs/RUNA-TUTOR.md)
+- [BEEMIM Tutor — future concept](docs/BEEMIM-TUTOR.md)
 - [Learning Telemetry](docs/TELEMETRY.md)
 - [Learner Feedback](docs/FEEDBACK.md)
+
+Review [AGENTS.md](AGENTS.md) for contribution rules, scope separation and continuation guidelines. Planning documents do **not** authorize changes to the active v1.1 branch.
 
 ---
 
