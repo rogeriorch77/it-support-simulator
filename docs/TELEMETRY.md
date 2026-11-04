@@ -1,21 +1,21 @@
-# Learning Telemetry
+# Learning Telemetry — V2 proposal
+
+**State:** future design only. No new collection is authorized by this document. Stabilization of v1.1/B8 remains the priority.
 
 ## Purpose
 
-Telemetry should answer useful product and pedagogy questions:
+If telemetry is separately approved, it should answer learning and product questions rather than create unnecessary surveillance:
 
-- where do learners get stuck?;
-- which concepts produce repeated mistakes?;
-- which hints actually help?;
-- are users failing because of the IT concept or because the UI is unclear?;
-- how long does a learner need to recover after an error?;
-- which scenarios are too easy, too hard or ambiguous?
+- Where do learners become blocked during N1/N2 diagnostics?
+- Which concepts generate repeated mistakes?
+- Which optional hints actually improve understanding?
+- Is the difficulty caused by the IT concept, a confusing interface or incomplete instructions?
+- How long does recovery take after an incorrect diagnostic step?
+- Which scenarios are too easy, too difficult or ambiguous?
 
-## Prefer structured events
+## Prefer structured, minimized events
 
-Do not default to storing full raw chat transcripts. Structured events are easier to analyze, safer to retain and more useful for aggregate learning metrics.
-
-Example event:
+Avoid recording full terminal transcripts, raw chats, screenshots or private conversation text by default. Example **illustrative schema, not an implemented event**:
 
 ```json
 {
@@ -30,31 +30,31 @@ Example event:
 }
 ```
 
-Other useful events may include:
+Candidate events for a separately approved collection plan: scenario_started, diagnostic_action_attempted, incorrect_action, hint_requested, concept_explanation_opened, scenario_resolved, scenario_abandoned and feedback_submitted.
 
-- scenario_started;
-- diagnostic_action_attempted;
-- incorrect_action;
-- hint_requested;
-- concept_explanation_opened;
-- scenario_resolved;
-- scenario_abandoned;
-- feedback_submitted.
+Event names are **proposals**, not an instruction to alter current JavaScript, tracking, Supabase tables or retention policies.
 
-## Data minimization
+## Data protection and model boundaries
 
-Telemetry should avoid unnecessary personal data. Use opaque session/user references where identity is not required for the metric.
+- Evaluate purpose, data classification, lawful basis, notice, consent where needed, data minimization, user control, retention and deletion **before** implementation.
+- Use opaque identifiers when attribution is not necessary. Avoid unnecessary linking of learner identity, child accounts, device fingerprint, location or other sensitive context.
+- **Do not automatically train on BEEMIM Tutor interactions**, learner mistakes, uploaded personal photos/avatars, private messages or voice recordings.
+- Raw conversations and free-text feedback require independent policies from aggregate learning metrics; never treat general product acceptance as permission for model training.
+- A future research program may use separately approved, governed and consent-based examples for evaluation, but not silently harvest the simulator's user base.
+- No telemetry source or model output may award XP, modify rankings, bypass anti-fraud, certify completion or decide account permissions.
 
-Raw RUNA conversations must not automatically become model-training data. If a future research/training program wants conversation samples, it should use explicit consent, a clear purpose, minimization/anonymization and a separate data policy.
+## Example pedagogical analysis
 
-## Example analysis
+A meaningful product observation might be:
 
-A useful product insight is not "users sent 10,000 messages". It is closer to:
+> A group of learners repeatedly fails DNS Resolution 01 on step 4, but later succeeds after an explanation of resolver order. Review prerequisite content and compare results with a non-AI learning path.
 
-> Learners fail step 4 of DNS Resolution 01 at a high rate, but completion improves significantly after a concept-level hint. Review the prerequisite explanation before increasing scenario difficulty.
+This is a **hypothesis** to evaluate with sufficient evidence and privacy safeguards, not an observed statistic.
 
-That kind of signal can later be analyzed by TUK or another analytics layer without giving it action authority over the product.
+## Model research note
 
-## Model growth note
+More learners can yield more varied feedback about teaching quality, but **growth does not automatically produce valid training data or a stronger model**. Future LUARUM candidates or approved external models require separate benchmarks, versioned datasets, evaluation gates and explicit research authorization; increasing parameter counts is a distinct architecture/training decision.
 
-More users can provide more evaluation cases, error patterns and opt-in training examples. This can improve future SAMBA datasets and evaluations. It does not automatically increase model parameter count; larger model generations require an explicit architecture/training decision.
+TUK could eventually help organize source-backed technical explanations, but that does not give TUK access to student records or authority over the simulator.
+
+See [V2 planning](V2-VISION.md), [BEEMIM Tutor proposal](BEEMIM-TUTOR.md) and [feedback design](FEEDBACK.md).
