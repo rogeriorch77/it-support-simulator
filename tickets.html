@@ -34,6 +34,8 @@
     /* Detail level row */
     .detail-level-row { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
   </style>
+  <link rel="stylesheet" href="css/avatars.css">
+  <link rel="stylesheet" href="css/profile.css">
 </head>
 <body>
   <div class="sidebar-overlay"></div>
@@ -222,7 +224,11 @@
   <script src="js/app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
-  <script src="js/auth.js"></script>
+<script src="js/safe-dom.js"></script>
+  <script src="js/xp-levels.js"></script>
+  <script src="js/avatar-assets.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/profile.js"></script>
   <script src="js/tickets.js"></script>
   <script>
 
@@ -252,7 +258,7 @@
     const levelClass = { 'N1 Facile': 'lvl-n1f', 'N1 Moyen': 'lvl-n1m', 'N2 Moyen': 'lvl-n2m', 'N2 Difficile': 'lvl-n2d' };
     function levelBadge(level) {
       const cls = levelClass[level] || 'lvl-n1m';
-      return `<span class="lvl-badge ${cls}">${level}</span>`;
+      return `<span class="lvl-badge ${cls}">${SafeDom.escape(level)}</span>`;
     }
 
     // ---- RENDER ----
@@ -300,19 +306,19 @@
       }
 
       tbody.innerHTML = filtered.map(t => `
-        <tr class="clickable" data-id="${t.id}">
+        <tr class="clickable" data-id="${SafeDom.escape(t.id)}">
           <td>
-            <strong>#${t.id}</strong>
+            <strong>#${SafeDom.escape(t.id)}</strong>
             <div>${levelBadge(t.level)}</div>
           </td>
           <td>
-            <span class="td-issue-text" title="${t.issue}">${t.issue}</span>
-            <div class="td-sub">${t.dept} · ${t.caller}</div>
+            <span class="td-issue-text" title="${SafeDom.escape(t.issue)}">${SafeDom.escape(t.issue)}</span>
+            <div class="td-sub">${SafeDom.escape(t.dept)} · ${SafeDom.escape(t.caller)}</div>
           </td>
-          <td>${t.category}</td>
-          <td><span class="badge ${priorityBadge[t.priority]}">${App.translations[priorityLabel[t.priority]] || t.priority}</span></td>
-          <td><span class="badge ${statusBadge[t.status]}">${App.translations[statusLabel[t.status]] || t.status}</span></td>
-          <td><span class="sla-indicator"><span class="dot" style="background:${slaColors[t.sla]}"></span> ${App.translations[slaLabels[t.sla]] || t.sla}</span></td>
+          <td>${SafeDom.escape(t.category)}</td>
+          <td><span class="badge ${priorityBadge[t.priority]}">${SafeDom.escape(App.translations[priorityLabel[t.priority]] || t.priority)}</span></td>
+          <td><span class="badge ${statusBadge[t.status]}">${SafeDom.escape(App.translations[statusLabel[t.status]] || t.status)}</span></td>
+          <td><span class="sla-indicator"><span class="dot" style="background:${slaColors[t.sla]}"></span> ${SafeDom.escape(App.translations[slaLabels[t.sla]] || t.sla)}</span></td>
         </tr>
       `).join('');
 
@@ -349,14 +355,14 @@
       const bar = document.getElementById('ticketActionsBar');
       let html = '';
       if (selectedTicket.status === 'open') {
-        html += `<button class="btn btn-primary" onclick="changeStatus('progress'); resolveInTerminal();">${t('take_ticket')}</button>`;
+        html += `<button class="btn btn-primary" onclick="changeStatus('progress'); resolveInTerminal();">${SafeDom.escape(t('take_ticket'))}</button>`;
       }
       if (selectedTicket.status === 'progress') {
         html += `<button class="btn btn-success" onclick="resolveInTerminal()">&#9654; Résoudre via Terminal</button>`;
       }
       if (selectedTicket.status === 'resolved') {
-        html += `<button class="btn btn-outline" onclick="changeStatus('closed')">${t('close_ticket')}</button>`;
-        html += `<button class="btn btn-outline" onclick="changeStatus('open')">${t('reopen_ticket')}</button>`;
+        html += `<button class="btn btn-outline" onclick="changeStatus('closed')">${SafeDom.escape(t('close_ticket'))}</button>`;
+        html += `<button class="btn btn-outline" onclick="changeStatus('open')">${SafeDom.escape(t('reopen_ticket'))}</button>`;
       }
       bar.innerHTML = html;
     }
@@ -430,10 +436,10 @@
       container.innerHTML = selectedTicket.notes.map(n => `
         <div class="note-item">
           <div class="note-header">
-            <span class="note-author">${n.author}</span>
-            <span class="note-date">${n.date}</span>
+            <span class="note-author">${SafeDom.escape(n.author)}</span>
+            <span class="note-date">${SafeDom.escape(n.date)}</span>
           </div>
-          <div class="note-body">${n.text}</div>
+          <div class="note-body">${SafeDom.escape(n.text)}</div>
         </div>
       `).join('');
     }

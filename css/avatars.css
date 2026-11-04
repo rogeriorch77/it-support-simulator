@@ -1,0 +1,28 @@
+/* Avatar collection v1.1 — quiet pastels to contrast the dark UI. */
+.mascot-avatar {
+  display: inline-block;
+  background-color: #e3edf7;
+  background-image: url('../img/avatars-v11.webp');
+  background-size: 400% 300%;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.mascot-avatar--cloudbot { background-position: 0% 0%; }
+.mascot-avatar--penguindev { background-position: 33.333% 0%; }
+.mascot-avatar--cyberhusky { background-position: 66.667% 0%; }
+.mascot-avatar--terminalcat { background-position: 100% 0%; }
+.mascot-avatar--rootbot { background-position: 0% 50%; }
+.mascot-avatar--shadowbyte { background-position: 33.333% 50%; }
+.mascot-avatar--redpanda { background-position: 66.667% 50%; }
+.mascot-avatar--astrobot { background-position: 100% 50%; }
+.mascot-avatar--retrobyte { background-position: 0% 100%; }
+.mascot-avatar--bluedragon { background-position: 33.333% 100%; }
+.mascot-avatar--debugduck { background-position: 66.667% 100%; }
+.mascot-avatar--nerdowl { background-position: 100% 100%; }
+.avatar-fallback { display:inline-flex; align-items:center; justify-content:center; background:#243447; color:#e7f0f7; border-radius:50%; }
+.user-info .profile-top-avatar { width:30px;height:30px;object-fit:cover;border-radius:50%;flex-shrink:0; }
+.user-info .profile-edit { background:transparent;border:1px solid transparent;border-radius:6px;color:var(--text-muted, #8da3b7);cursor:pointer;font:inherit;font-size:11px;padding:4px 5px; }
+.user-info .profile-edit:hover,.user-info .profile-edit:focus-visible { border-color:#33495c; color:#d1e7ff; }

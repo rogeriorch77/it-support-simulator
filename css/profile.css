@@ -1,0 +1,26 @@
+/* Compact user-profile dialog. This stylesheet does not touch ranking or XP. */
+.profile-overlay {position:fixed;inset:0;z-index:10000;background:rgba(4,9,15,.83);display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
+.profile-dialog {color:#d8e6f1;font-family:'JetBrains Mono',monospace;width:min(600px,100%);max-height:min(90vh,850px);overflow:auto;background:#121b24;border:1px solid #2a3a4b;border-radius:16px;padding:24px;box-shadow:0 24px 70px rgba(0,0,0,.45);}
+.profile-dialog h2 {font-size:1.12rem;line-height:1.4;color:#f3f9ff;margin:0 0 7px;}
+.profile-dialog p {font-size:.78rem;color:#9eafc0;line-height:1.6;margin:0 0 18px;}
+.profile-dialog label.profile-label {display:block;font-size:.75rem;font-weight:700;margin-bottom:7px;}
+.profile-dialog input[type=text] {background:#0b121b;color:#f4f8ff;width:100%;border:1px solid #34495e;border-radius:9px;padding:12px;font:inherit;outline:none;}
+.profile-dialog input[type=text]:focus {border-color:#65b8dc;box-shadow:0 0 0 2px rgba(101,184,220,.15);}
+.profile-caption {font-size:.68rem;color:#8c9ead;margin-top:6px;margin-bottom:15px;}
+.profile-avatar-grid {display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin:12px 0 18px;}
+.profile-avatar-option {display:flex;align-items:center;justify-content:center;aspect-ratio:1;border:2px solid transparent;border-radius:14px;background:#192632;padding:5px;cursor:pointer;transition:border-color .15s,background .15s,transform .15s;}
+.profile-avatar-option:hover {background:#223445;transform:translateY(-1px);}
+.profile-avatar-option[aria-pressed=true] {border-color:#8dcbe5;background:#254052;}
+.profile-avatar-option .mascot-avatar {width:100%;height:100%;max-width:72px;max-height:72px;}
+.profile-avatar-other {display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.profile-option-btn {background:#182633;border:1px solid #33495e;color:#cfdfeb;border-radius:9px;padding:9px 12px;font:inherit;font-size:.72rem;cursor:pointer;}
+.profile-option-btn[aria-pressed=true] {border-color:#8dcbe5;background:#254052;color:#fff;}
+.profile-status {font-size:.72rem;min-height:1.2rem;margin:10px 0;color:#e2aa85;}
+.profile-footer {display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:17px;}
+.profile-footer button {border-radius:9px;padding:10px 17px;font:inherit;font-size:.77rem;cursor:pointer;}
+.profile-secondary {background:transparent;border:1px solid #34495e;color:#becbd7;}
+.profile-primary {background:#70c4df;color:#09131b;border:1px solid #70c4df;font-weight:700;}
+.profile-primary:disabled {opacity:.55;cursor:wait;}
+.profile-upload-preview {display:none;width:52px;height:52px;object-fit:cover;border-radius:50%;margin-left:4px;}
+.profile-upload-preview.visible {display:inline-block;}
+@media(max-width:520px){.profile-dialog{padding:17px}.profile-avatar-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.profile-footer{justify-content:stretch}.profile-footer button{flex:1}.profile-dialog{max-height:93vh}}

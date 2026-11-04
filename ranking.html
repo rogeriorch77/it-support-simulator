@@ -4,18 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Classement — IT Support Simulator</title>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VQCQT3971F"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-VQCQT3971F');
-  </script>
+  <!-- Analytics disabled in v1.1 security staging until prior consent is implemented.
+       Do not re-enable automatic Google Analytics loading. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
+<script src="js/safe-dom.js"></script>
+  <script src="js/xp-levels.js"></script>
+  <script src="js/avatar-assets.js"></script>
   <style>
     :root {
       --bg:      #080b0f;
@@ -184,6 +181,7 @@
       .rk-stat:nth-child(3) { grid-column: 1 / -1; border-top: 1px solid var(--border); }
     }
   </style>
+  <link rel="stylesheet" href="css/avatars.css">
 </head>
 <body>
 
@@ -244,38 +242,24 @@
   <script>
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-    const MEDALS = ['&#129945;', '&#129944;', '&#129943;'];
-
-    const LB_LEVELS = [
-      { min:0,     name:'Débutant', bg:'rgba(90,122,150,.15)', color:'#5a7a96' },
-      { min:500,   name:'Junior',   bg:'rgba(78,142,247,.12)', color:'#4e8ef7' },
-      { min:2000,  name:'Confirmé', bg:'rgba(57,211,83,.12)',  color:'#39d353' },
-      { min:5000,  name:'Senior',   bg:'rgba(155,114,245,.12)',color:'#9b72f5' },
-      { min:10000, name:'Expert',   bg:'rgba(240,136,62,.12)', color:'#f0883e' },
-    ];
+    const MEDALS = ['🥇', '🥈', '🥉'];
 
     function getLevel(xp) {
-      let l = LB_LEVELS[0];
-      for (const lv of LB_LEVELS) { if (xp >= lv.min) l = lv; }
-      return l;
+      return XPLevels.getLevel(xp);
     }
 
     function badge(xp) {
       const l = getLevel(xp);
-      return `<span class="rk-badge" style="background:${l.bg};color:${l.color};border-color:${l.color}33;">${l.name}</span>`;
+      return `<span class="rk-badge" style="background:${l.bg};color:${l.color};border-color:${l.border};">${l.name}</span>`;
     }
 
     function xpBar(xp) {
-      const l = getLevel(xp);
-      const idx = LB_LEVELS.indexOf(l);
-      const next = LB_LEVELS[idx + 1];
-      const pct = next ? Math.min(100, Math.round((xp - l.min) / (next.min - l.min) * 100)) : 100;
-      return { color: l.color, pct };
+      return { color: XPLevels.getLevel(xp).color, pct: XPLevels.getProgress(xp) };
     }
 
     async function loadRanking() {
       const { data, error } = await sb.from('profiles')
-        .select('github_username,github_avatar,total_xp,quizzes_played,best_score')
+        .select('github_username,github_avatar,display_name,avatar_kind,avatar_id,custom_avatar_path,total_xp,quizzes_played,best_score')
         .gte('total_xp', 150)
         .order('total_xp', { ascending: false })
         .limit(100);
@@ -290,21 +274,19 @@
 
       document.getElementById('rkBody').innerHTML = data.map((p, i) => {
         const xp   = p.total_xp || 0;
-        const name = p.github_username || 'Anonyme';
+        const name = AvatarAssets.displayName(p);
         const { color, pct } = xpBar(xp);
         const rowClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
         const pos = i < 3
           ? `<span style="font-size:1.1rem;">${MEDALS[i]}</span>`
           : `<span>${i + 1}</span>`;
-        const avatar = p.github_avatar
-          ? `<img class="rk-avatar" src="${p.github_avatar}" alt="">`
-          : `<div class="rk-avatar-fallback">${name[0].toUpperCase()}</div>`;
+        const avatar = AvatarAssets.render(p, 'rk-avatar');
 
         return `<div class="rk-row ${rowClass}">
           <div class="rk-pos">${pos}</div>
           ${avatar}
           <div class="rk-info">
-            <div class="rk-name">@${name}</div>
+            <div class="rk-name">@${SafeDom.escape(name)}</div>
             <div>${badge(xp)}</div>
           </div>
           <div class="rk-xp-wrap">
